@@ -2404,6 +2404,11 @@ wrappy@1:
   resolved "https://registry.npmmirror.com/wrappy/-/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
   integrity sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==
 
+xterm-addon-web-links@^0.7.0:
+  version "0.7.0"
+  resolved "https://registry.npmmirror.com/xterm-addon-web-links/-/xterm-addon-web-links-0.7.0.tgz#dceac36170605f9db10a01d716bd83ee38f65c17"
+  integrity sha512-6PqoqzzPwaeSq22skzbvyboDvSnYk5teUYEoKBwMYvhbkwOQkemZccjWHT5FnNA8o1aInTc4PRYAl4jjPucCKA==
+
 xterm@^5.0.0:
   version "5.0.0"
   resolved "https://registry.npmmirror.com/xterm/-/xterm-5.0.0.tgz#0af50509b33d0dc62fde7a4ec17750b8e453cc5c"
