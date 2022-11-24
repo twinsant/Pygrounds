@@ -20,7 +20,7 @@ export default function Home() {
       import sys
       sys.version
     `);
-    term.write(`Python ${msg}\r\n`);
+    term.write(`Python ${msg}\r\n\r\n`);
   }
 
   function xtermLoaded() {
@@ -28,6 +28,12 @@ export default function Home() {
 
   useEffect(() => {
   }, []);
+
+  const menus = [
+    {key: "File", label: "File"},
+    {key: "Edit", label: "Edit"},
+    {key: "Run", label: "Run"},
+  ]
 
   return (
     <div className={styles.container}>
@@ -54,14 +60,8 @@ export default function Home() {
           <Menu
             theme="dark"
             mode="horizontal"
-            defaultSelectedKeys={['2']}
-            items={new Array(3).fill(null).map((_, index) => {
-              const key = index + 1;
-              return {
-                key,
-                label: `Nav ${key}`,
-              };
-            })}
+            defaultSelectedKeys={['Run']}
+            items={menus}
           />
         </Header>
         <Content
@@ -74,7 +74,7 @@ export default function Home() {
               margin: '16px 0',
             }}
           >
-            <Breadcrumb.Item>Home</Breadcrumb.Item>
+            <Breadcrumb.Item>Pygrounds</Breadcrumb.Item>
             <Breadcrumb.Item>Hello, World!</Breadcrumb.Item>
           </Breadcrumb>
           <div>
