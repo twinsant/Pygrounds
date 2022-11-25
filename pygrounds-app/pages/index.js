@@ -5,6 +5,8 @@ import { Breadcrumb, Layout, Menu } from 'antd';
 import { Col, Row } from 'antd';
 import styles from '../styles/Home.module.css'
 // import { WebLinksAddon } from 'xterm-addon-web-links';
+// https://github.com/suren-atoyan/monaco-react
+import Editor from "@monaco-editor/react";
 
 const { Header, Content, Footer } = Layout;
 
@@ -23,7 +25,13 @@ export default function Home() {
     term.write(`Python ${msg}\r\n\r\n`);
   }
 
-  function xtermLoaded() {
+  function editorDidMount(editor, monaco) {
+    console.log('editorDidMount', editor);
+    editor.focus();
+  }
+
+  function onChange(newValue, e) {
+    console.log('onChange', newValue, e);
   }
 
   useEffect(() => {
@@ -40,8 +48,6 @@ export default function Home() {
       <Head>
         <title>Pygrounds</title>
         <meta name="description" content="Best online Python playgrounds." />
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="stylesheet" href="/xterm.css" />
       </Head>
       <Script src="/xterm.js" 
       onLoad={()=>{
@@ -80,12 +86,12 @@ export default function Home() {
           <div>
             <Row>
               <Col span={12}>
-                {/* <Row>
-                  <Col>Text</Col>
-                </Row>
-                <Row>
-                  <Col>Editor</Col>
-                </Row> */}
+              <Editor
+                height="100%"
+                theme="vs-dark"
+                defaultLanguage="python"
+                defaultValue="print('Hello, World!')"
+              />
               </Col>
               <Col span={12}><div id="terminal" /></Col>
             </Row>
