@@ -90,10 +90,11 @@ export default function Home() {
                 height="100%"
                 theme="vs-dark"
                 defaultLanguage="python"
-                defaultValue="print('Hello, World!')"
+                defaultValue="print('hello, world')"
               />
               </Col>
-              <Col span={12}><div id="terminal" /></Col>
+              <Col span={1} />
+              <Col span={11}><div id="terminal" /></Col>
             </Row>
           </div>
         </Content>
