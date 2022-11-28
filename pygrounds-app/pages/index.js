@@ -19,13 +19,17 @@ export default function Home() {
 
   function termLoaded() {
     console.log("xterm ready.");
-    termRef = new Terminal();
-    // terminal.loadAddon(new WebLinksAddon());
-    termRef.open(document.getElementById('terminal'));
-    termRef.write('Loading \x1B[1;3;31mPygrounds v0.1\x1B[0m ... \r\n')
-    if (welcome) {
-      termRef.write(welcome);
-      welcome = null;
+    try {
+      termRef = new Terminal();
+      // terminal.loadAddon(new WebLinksAddon());
+      termRef.open(document.getElementById('terminal'));
+      termRef.write('Loading \x1B[1;3;31mPygrounds v0.1\x1B[0m ... \r\n')
+      if (welcome) {
+        termRef.write(welcome);
+        welcome = null;
+      }
+    } catch (e) {
+      console.log(e);
     }
   }
 
@@ -36,17 +40,21 @@ export default function Home() {
   async function pyodideLoaded() {
     console.log('pyodide ready.')
     // https://pyodide.org/en/stable/usage/quickstart.html
-    pyodideRef = await loadPyodide({stdout: stdout});
-    // Pyodide is now ready to use...
-    var msg = pyodideRef.runPython(`
-      import sys
-      sys.version
-    `);
-    const pymsg = `Python ${msg}\r\n\r\n`;
-    if (termRef) {
-      termRef.write(pymsg);
-    } else {
-      welcome = pymsg;
+    try {
+      pyodideRef = await loadPyodide({stdout: stdout});
+      // Pyodide is now ready to use...
+      var msg = pyodideRef.runPython(`
+        import sys
+        sys.version
+      `);
+      const pymsg = `Python ${msg}\r\n\r\n`;
+      if (termRef) {
+        termRef.write(pymsg);
+      } else {
+        welcome = pymsg;
+      }
+    } catch (e) {
+      console.log(e)
     }
   }
 
