@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import Head from 'next/head'
 import Script from 'next/script'
 import { Button, Breadcrumb, Layout, Menu } from 'antd';
@@ -13,6 +13,8 @@ const { Header, Content, Footer } = Layout;
 
 export default function Home() {
   var term;
+  const termRef = useRef(null);
+  const editorRef = useRef(null);
 
   async function pyodideLoaded() {
     console.log('pyodide ready.')
@@ -36,7 +38,13 @@ export default function Home() {
   }
 
   function onRun() {
-    console.log('Run');
+    console.log(editorRef.current.getValue());
+  }
+
+  function editorDidMount(editor, monaco) {
+    console.log('editorDidMount', editor);
+    editor.focus();
+    editorRef.current = editor; 
   }
 
   useEffect(() => {
@@ -96,6 +104,7 @@ export default function Home() {
                 theme="vs-dark"
                 defaultLanguage="python"
                 defaultValue="print('hello, world')"
+                onMount={editorDidMount}
               />
               </Col>
               <Col span={1}  justify="space-around" align="middle">
