@@ -12,24 +12,35 @@ import Editor from "@monaco-editor/react";
 const { Header, Content, Footer } = Layout;
 
 export default function Home() {
-  var term;
-  const termRef = useRef(null);
+  var termRef = useRef(null);
   const editorRef = useRef(null);
+  var pyodideRef = useRef(null);
+
+  function termLoaded() {
+    console.log("xterm ready.");
+    termRef = new Terminal();
+    // terminal.loadAddon(new WebLinksAddon());
+    termRef.open(document.getElementById('terminal'));
+    termRef.write('Loading \x1B[1;3;31mPygrounds v0.1\x1B[0m ... \r\n')
+  }
+
+  function stdout(msg) {
+    termRef.write(`${msg}\r\n`);
+  }
 
   async function pyodideLoaded() {
     console.log('pyodide ready.')
     // https://pyodide.org/en/stable/usage/quickstart.html
-    let pyodide = await loadPyodide();
+    pyodideRef = await loadPyodide({stdout: stdout});
     // Pyodide is now ready to use...
-    var msg = pyodide.runPython(`
+    var msg = pyodideRef.runPython(`
       import sys
       sys.version
     `);
-    term.write(`Python ${msg}\r\n\r\n`);
+    termRef.write(`Python ${msg}\r\n\r\n`);
   }
 
   function editorDidMount(editor, monaco) {
-    console.log('editorDidMount', editor);
     editor.focus();
   }
 
@@ -37,12 +48,13 @@ export default function Home() {
     console.log('onChange', newValue, e);
   }
 
-  function onRun() {
-    console.log(editorRef.current.getValue());
+  async function onRun() {
+    const code = editorRef.current.getValue();
+    const output = await pyodideRef.runPython(code);
+    // console.log(`output: ${output}`)
   }
 
   function editorDidMount(editor, monaco) {
-    console.log('editorDidMount', editor);
     editor.focus();
     editorRef.current = editor; 
   }
@@ -63,13 +75,7 @@ export default function Home() {
         <meta name="description" content="Best online Python playgrounds." />
       </Head>
       <Script src="/xterm.js" 
-      onLoad={()=>{
-        console.log("xterm ready.");
-        term = new Terminal();
-        // terminal.loadAddon(new WebLinksAddon());
-        term.open(document.getElementById('terminal'));
-        term.write('Loading \x1B[1;3;31mPygrounds v0.1\x1B[0m ... \r\n')
-      }}/>
+      onLoad={termLoaded}/>
       <Script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"
       onLoad={pyodideLoaded} />
 
