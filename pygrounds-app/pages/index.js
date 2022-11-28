@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Script from 'next/script'
-import { Breadcrumb, Layout, Menu } from 'antd';
+import { Button, Breadcrumb, Layout, Menu } from 'antd';
+import { PlayCircleOutlined } from '@ant-design/icons';
 import { Col, Row } from 'antd';
 import styles from '../styles/Home.module.css'
 // import { WebLinksAddon } from 'xterm-addon-web-links';
@@ -32,6 +33,10 @@ export default function Home() {
 
   function onChange(newValue, e) {
     console.log('onChange', newValue, e);
+  }
+
+  function onRun() {
+    console.log('Run');
   }
 
   useEffect(() => {
@@ -93,7 +98,13 @@ export default function Home() {
                 defaultValue="print('hello, world')"
               />
               </Col>
-              <Col span={1} />
+              <Col span={1}  justify="space-around" align="middle">
+                <Button
+                  type="primary"
+                  icon={<PlayCircleOutlined />}
+                  shape='circle'
+                  onClick={onRun} />
+              </Col>
               <Col span={11}><div id="terminal" /></Col>
             </Row>
           </div>
