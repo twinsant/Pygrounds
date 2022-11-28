@@ -15,6 +15,7 @@ export default function Home() {
   var termRef = useRef(null);
   const editorRef = useRef(null);
   var pyodideRef = useRef(null);
+  var welcome = null;
 
   function termLoaded() {
     console.log("xterm ready.");
@@ -22,6 +23,10 @@ export default function Home() {
     // terminal.loadAddon(new WebLinksAddon());
     termRef.open(document.getElementById('terminal'));
     termRef.write('Loading \x1B[1;3;31mPygrounds v0.1\x1B[0m ... \r\n')
+    if (welcome) {
+      termRef.write(welcome);
+      welcome = null;
+    }
   }
 
   function stdout(msg) {
@@ -37,7 +42,12 @@ export default function Home() {
       import sys
       sys.version
     `);
-    termRef.write(`Python ${msg}\r\n\r\n`);
+    const pymsg = `Python ${msg}\r\n\r\n`;
+    if (termRef) {
+      termRef.write(pymsg);
+    } else {
+      welcome = pymsg;
+    }
   }
 
   function editorDidMount(editor, monaco) {
