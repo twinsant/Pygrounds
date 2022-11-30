@@ -77,8 +77,7 @@ export default function Home() {
     editorRef.current = editor; 
   }
 
-  useEffect(() => {
-  }, []);
+  // useEffect(termLoaded, []);
 
   const menus = [
     {key: "File", label: "File"},
@@ -93,9 +92,11 @@ export default function Home() {
         <meta name="description" content="Best online Python playgrounds." />
       </Head>
       <Script src="/xterm.js" 
-      onLoad={termLoaded}/>
+      onLoad={termLoaded}
+      />
       <Script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"
-      onLoad={pyodideLoaded} />
+      onLoad={pyodideLoaded} 
+      />
 
       <Layout className="layout">
         <Header>
