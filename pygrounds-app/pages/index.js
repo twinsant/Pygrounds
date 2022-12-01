@@ -40,22 +40,14 @@ export default function Home() {
   async function pyodideLoaded() {
     console.log('pyodide ready.')
     // https://pyodide.org/en/stable/usage/quickstart.html
-    try {
-      pyodideRef = await loadPyodide({stdout: stdout});
-      // Pyodide is now ready to use...
-      var msg = pyodideRef.runPython(`
-        import sys
-        sys.version
-      `);
-      const pymsg = `Python ${msg}\r\n\r\n`;
-      if (termRef) {
-        termRef.write(pymsg);
-      } else {
-        welcome = pymsg;
-      }
-    } catch (e) {
-      console.log(e)
-    }
+    pyodideRef = await loadPyodide({stdout: stdout});
+    // Pyodide is now ready to use...
+    var msg = pyodideRef.runPython(`
+      import sys
+      sys.version
+    `);
+    const pymsg = `Python ${msg}\r\n\r\n`;
+    console.log(pymsg);
   }
 
   function editorDidMount(editor, monaco) {
@@ -147,7 +139,7 @@ export default function Home() {
                   onClick={onRun} />
               </Col>
               <Col span={11}>
-                TODO
+                <div id="terminal" />
               </Col>
             </Row>
           </div>
