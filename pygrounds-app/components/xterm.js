@@ -1,13 +1,15 @@
 // components/terminal-component
 import { useRef, useState, useEffect } from 'react'
 import { Terminal } from 'xterm'
+import colors from 'ansi-colors'
 
 function XTerm() {
     useEffect(() => {
         async function initTerminal() {
+            console.log(colors.red("XTerm loaded"))
             const term = new Terminal()
             term.open(document.getElementById('terminal'));
-            term.write('Loading \x1B[33;1mPygrounds v0.1\x1B[0m ... \r\n')
+            term.write(`Loading ${colors.red("Pygrounds v0.1")} ... \r\n`)
         }
         initTerminal();
     }, []);
