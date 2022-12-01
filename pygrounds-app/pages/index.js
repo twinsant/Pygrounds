@@ -5,7 +5,6 @@ import { Button, Breadcrumb, Layout, Menu } from 'antd';
 import { PlayCircleOutlined } from '@ant-design/icons';
 import { Col, Row } from 'antd';
 import styles from '../styles/Home.module.css'
-// import { WebLinksAddon } from 'xterm-addon-web-links';
 // https://github.com/suren-atoyan/monaco-react
 import Editor from "@monaco-editor/react";
 
@@ -34,7 +33,8 @@ export default function Home() {
   }
 
   function stdout(msg) {
-    termRef.write(`${msg}\r\n`);
+    // termRef.write(`${msg}\r\n`);
+    console.log(msg);
   }
 
   async function pyodideLoaded() {
@@ -77,7 +77,14 @@ export default function Home() {
     editorRef.current = editor; 
   }
 
-  // useEffect(termLoaded, []);
+  useEffect(() => {
+    const initTerminal = async () => {
+        const { Terminal } = await import('xterm')
+        const term = new Terminal()
+        // Add logic with `term`
+    }
+    initTerminal()
+  }, []);
 
   const menus = [
     {key: "File", label: "File"},
@@ -91,9 +98,9 @@ export default function Home() {
         <title>Pygrounds</title>
         <meta name="description" content="Best online Python playgrounds." />
       </Head>
-      <Script src="/xterm.js" 
+      {/* <Script src="/xterm.js" 
       onLoad={termLoaded}
-      />
+      /> */}
       <Script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"
       onLoad={pyodideLoaded} 
       />
@@ -139,7 +146,9 @@ export default function Home() {
                   shape='circle'
                   onClick={onRun} />
               </Col>
-              <Col span={11}><div id="terminal" /></Col>
+              <Col span={11}>
+                TODO
+              </Col>
             </Row>
           </div>
         </Content>

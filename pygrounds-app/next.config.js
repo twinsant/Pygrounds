@@ -3,7 +3,7 @@ const { patchWebpackConfig } = require('next-global-css')
 const webpackNodeExternals = require('webpack-node-externals')
 
 const nextConfig = {
-  reactStrictMode: true,
+  // reactStrictMode: true,
 }
 
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
@@ -16,26 +16,26 @@ module.exports = {
     nextConfig,
     options
   ) => {
-    patchWebpackConfig(nextConfig, options)
-    if (options.isServer) {
-      nextConfig.externals = webpackNodeExternals({
-        // Uses list to add this modules for server bundle and process.
-        allowlist: [/test/],
-      })
-    }
+    // patchWebpackConfig(nextConfig, options)
+    // if (options.isServer) {
+    //   nextConfig.externals = webpackNodeExternals({
+    //     // Uses list to add this modules for server bundle and process.
+    //     allowlist: [/test/],
+    //   })
+    // }
 
-    // Important: return the modified config
-    nextConfig.plugins.push(new MonacoWebpackPlugin({
-      // available options are documented at https://github.com/microsoft/monaco-editor/blob/main/webpack-plugin/README.md#options
-      languages: ['json']
-    }))
+    // // Important: return the modified config
+    // nextConfig.plugins.push(new MonacoWebpackPlugin({
+    //   // available options are documented at https://github.com/microsoft/monaco-editor/blob/main/webpack-plugin/README.md#options
+    //   languages: ['json']
+    // }))
 
-    // console.log(nextConfig.module.rules)
-    nextConfig.module.rules.push({
-      // test: /actionbar\.css$/,
-      // include: MONACO_DIR,
-      // use: ['style-loader', 'css-loader'],
-    })
+    // // console.log(nextConfig.module.rules)
+    // nextConfig.module.rules.push({
+    //   // test: /actionbar\.css$/,
+    //   // include: MONACO_DIR,
+    //   // use: ['style-loader', 'css-loader'],
+    // })
     return nextConfig
   },
 }
