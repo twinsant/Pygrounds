@@ -7,11 +7,15 @@ import { Col, Row } from 'antd';
 import styles from '../styles/Home.module.css'
 // https://github.com/suren-atoyan/monaco-react
 import Editor from "@monaco-editor/react";
+import dynamic from "next/dynamic"
+
+const XTerm = dynamic(() => import("../components/xterm"), {
+  ssr: false,
+})
 
 const { Header, Content, Footer } = Layout;
 
 export default function Home() {
-  var termRef = useRef(null);
   const editorRef = useRef(null);
   var pyodideRef = useRef(null);
   var welcome = null;
@@ -33,7 +37,6 @@ export default function Home() {
   }
 
   function stdout(msg) {
-    // termRef.write(`${msg}\r\n`);
     console.log(msg);
   }
 
@@ -70,12 +73,11 @@ export default function Home() {
   }
 
   useEffect(() => {
-    const initTerminal = async () => {
-        const { Terminal } = await import('xterm')
-        const term = new Terminal()
-        // Add logic with `term`
+    async function initTerminal() {
+      // const Terminal = (await import('../components/xterm')).default
+      // console.log(Terminal)
     }
-    initTerminal()
+    initTerminal();
   }, []);
 
   const menus = [
@@ -139,7 +141,7 @@ export default function Home() {
                   onClick={onRun} />
               </Col>
               <Col span={11}>
-                <div id="terminal" />
+                <XTerm />
               </Col>
             </Row>
           </div>
