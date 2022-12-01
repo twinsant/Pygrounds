@@ -9,7 +9,7 @@ function XTerm() {
             console.log(colors.red("XTerm loaded"))
             const term = new Terminal()
             term.open(document.getElementById('terminal'));
-            term.write(`Loading ${colors.red("Pygrounds v0.1")} ... \r\n`)
+            term.write(`Loading ${colors.bold.yellow("Pygrounds v0.1")} ... \r\n`)
         }
         initTerminal();
     }, []);

@@ -18,23 +18,6 @@ const { Header, Content, Footer } = Layout;
 export default function Home() {
   const editorRef = useRef(null);
   var pyodideRef = useRef(null);
-  var welcome = null;
-
-  function termLoaded() {
-    console.log("xterm ready.");
-    try {
-      termRef = new Terminal();
-      // terminal.loadAddon(new WebLinksAddon());
-      termRef.open(document.getElementById('terminal'));
-      termRef.write('Loading \x1B[1;3;31mPygrounds v0.1\x1B[0m ... \r\n')
-      if (welcome) {
-        termRef.write(welcome);
-        welcome = null;
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  }
 
   function stdout(msg) {
     console.log(msg);
