@@ -1,6 +1,7 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useEffect } from 'react'
 import Head from 'next/head'
 import Script from 'next/script'
+import Link from 'next/link'
 import { Button, Breadcrumb, Layout, Menu } from 'antd';
 import { PlayCircleOutlined } from '@ant-design/icons';
 import { Col, Row } from 'antd';
@@ -18,13 +19,14 @@ const { Header, Content, Footer } = Layout;
 export default function Home() {
   const editorRef = useRef(null);
   var pyodideRef = useRef(null);
+  const xtermRef = useRef(null);
 
   function stdout(msg) {
     console.log(msg);
   }
 
   async function pyodideLoaded() {
-    console.log('pyodide ready.')
+    console.log('Pyodide ready.')
     // https://pyodide.org/en/stable/usage/quickstart.html
     pyodideRef = await loadPyodide({stdout: stdout});
     // Pyodide is now ready to use...
@@ -36,18 +38,9 @@ export default function Home() {
     console.log(pymsg);
   }
 
-  function editorDidMount(editor, monaco) {
-    editor.focus();
-  }
-
-  function onChange(newValue, e) {
-    console.log('onChange', newValue, e);
-  }
-
   async function onRun() {
     const code = editorRef.current.getValue();
-    const output = await pyodideRef.runPython(code);
-    // console.log(`output: ${output}`)
+    await pyodideRef.runPython(code);
   }
 
   function editorDidMount(editor, monaco) {
@@ -55,18 +48,8 @@ export default function Home() {
     editorRef.current = editor; 
   }
 
-  useEffect(() => {
-    async function initTerminal() {
-      // const Terminal = (await import('../components/xterm')).default
-      // console.log(Terminal)
-    }
-    initTerminal();
-  }, []);
-
   const menus = [
-    {key: "File", label: "File"},
-    {key: "Edit", label: "Edit"},
-    {key: "Run", label: "Run"},
+    {key: "m1", label: <Link href="https://github.com/twinsant/Pygrounds">Github</Link>},
   ]
 
   return (
@@ -75,11 +58,8 @@ export default function Home() {
         <title>Pygrounds</title>
         <meta name="description" content="Best online Python playgrounds." />
       </Head>
-      {/* <Script src="/xterm.js" 
-      onLoad={termLoaded}
-      /> */}
       <Script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"
-      onLoad={pyodideLoaded} 
+        onLoad={pyodideLoaded} 
       />
 
       <Layout className="layout">
@@ -88,10 +68,11 @@ export default function Home() {
           <Menu
             theme="dark"
             mode="horizontal"
-            defaultSelectedKeys={['Run']}
+            defaultSelectedKeys={['m1']}
             items={menus}
           />
         </Header>
+
         <Content
           style={{
             padding: '0 50px',
@@ -124,7 +105,7 @@ export default function Home() {
                   onClick={onRun} />
               </Col>
               <Col span={11}>
-                <XTerm />
+                <XTerm ref={xtermRef}/>
               </Col>
             </Row>
           </div>
@@ -134,7 +115,8 @@ export default function Home() {
             textAlign: 'center',
           }}
         >
-          Pygrounds ©2022 Created by <a href="https://twitter.com/twinsant">twinsant</a>
+          <p><b>Pygrounds</b> ©2022 &#10084;&#65039; by <a href="https://twitter.com/twinsant"><u>twinsant</u></a></p>
+          <p style={{color: 'gray'}}>Powered with Pyodide & Monaco Editor</p>
         </Footer>
       </Layout>
     </div>
