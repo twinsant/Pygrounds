@@ -22,7 +22,11 @@ export default function Home() {
   const xtermRef = useRef(null);
 
   function stdout(msg) {
-    console.log(msg);
+    xtermRef.current.write(`${msg}\r\n`);
+  }
+
+  function xtermLoaded(xterm) {
+    xtermRef.current = xterm;
   }
 
   async function pyodideLoaded() {
@@ -34,11 +38,13 @@ export default function Home() {
       import sys
       sys.version
     `);
-    const pymsg = `Python ${msg}\r\n\r\n`;
-    console.log(pymsg);
+    const pymsg = `\r\nPython ${msg}\r\n\r\n`;
+    xtermRef.current.write(pymsg);
   }
 
   async function onRun() {
+    console.log(xtermRef.current.term);
+
     const code = editorRef.current.getValue();
     await pyodideRef.runPython(code);
   }
@@ -105,7 +111,7 @@ export default function Home() {
                   onClick={onRun} />
               </Col>
               <Col span={11}>
-                <XTerm ref={xtermRef}/>
+                <XTerm onLoad={xtermLoaded}/>
               </Col>
             </Row>
           </div>

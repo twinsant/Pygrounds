@@ -30,6 +30,8 @@ function XTerm(props) {
             term.open(document.getElementById('terminal'));
             term.write(`Loading ${colors.bold.yellow("Pygrounds v0.1")} ... \r\n`)
             fitAddon.fit();
+
+            props.onLoad(term);
         }
         initTerminal();
     }, []);
