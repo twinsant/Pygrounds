@@ -99,6 +99,7 @@ export default function Home() {
                 height="100%"
                 theme="vs-dark"
                 defaultLanguage="python"
+                options={{minimap: false}}
                 defaultValue="print('hello, world')"
                 onMount={editorDidMount}
               />
