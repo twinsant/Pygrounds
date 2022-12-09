@@ -2492,6 +2492,11 @@ xterm-addon-web-links@^0.7.0:
   resolved "https://registry.npmmirror.com/xterm-addon-web-links/-/xterm-addon-web-links-0.7.0.tgz#dceac36170605f9db10a01d716bd83ee38f65c17"
   integrity sha512-6PqoqzzPwaeSq22skzbvyboDvSnYk5teUYEoKBwMYvhbkwOQkemZccjWHT5FnNA8o1aInTc4PRYAl4jjPucCKA==
 
+xterm-addon-webgl@^0.13.0:
+  version "0.13.0"
+  resolved "https://registry.npmmirror.com/xterm-addon-webgl/-/xterm-addon-webgl-0.13.0.tgz#b1d42ec454390ad8595aa8c8dde714b98a5eb896"
+  integrity sha512-xL4qBQWUHjFR620/8VHCtrTMVQsnZaAtd1IxFoiKPhC63wKp6b+73a45s97lb34yeo57PoqZhE9Jq5pB++ksPQ==
+
 xterm-for-react@^1.0.4:
   version "1.0.4"
   resolved "https://registry.npmmirror.com/xterm-for-react/-/xterm-for-react-1.0.4.tgz#6b35b9b037a0f9d979e7b57bb1d7c6ab7565b380"

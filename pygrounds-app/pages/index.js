@@ -52,7 +52,7 @@ export default function Home() {
     const code = editorRef.current.getValue();
     xtermRef.current.write("\r\nLoading imports...")
     await pyodideRef.loadPackagesFromImports(code);
-    xtermRef.current.write("\r\nLoading imports done.")
+    xtermRef.current.write("\r\nLoading imports done.\r\n")
     await pyodideRef.runPython(code);
   }
 
