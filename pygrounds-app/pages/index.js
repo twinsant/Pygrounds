@@ -22,7 +22,11 @@ export default function Home() {
   const xtermRef = useRef(null);
 
   function stdout(msg) {
-    xtermRef.current.write(`${msg}\r\n`);
+    xtermRef.current.write(`\r\n${msg}`);
+  }
+
+  function stderr(msg) {
+    xtermRef.current.write(`\r\n${msg}`);
   }
 
   function xtermLoaded(xterm) {
@@ -32,7 +36,7 @@ export default function Home() {
   async function pyodideLoaded() {
     console.log('Pyodide ready.')
     // https://pyodide.org/en/stable/usage/quickstart.html
-    pyodideRef = await loadPyodide({stdout: stdout});
+    pyodideRef = await loadPyodide({stdout: stdout, stderr: stderr});
     // Pyodide is now ready to use...
     var msg = pyodideRef.runPython(`
       import sys
@@ -46,6 +50,9 @@ export default function Home() {
     console.log(xtermRef.current.term);
 
     const code = editorRef.current.getValue();
+    xtermRef.current.write("\r\nLoading imports...")
+    await pyodideRef.loadPackagesFromImports(code);
+    xtermRef.current.write("\r\nLoading imports done.")
     await pyodideRef.runPython(code);
   }
 
@@ -64,7 +71,7 @@ export default function Home() {
         <title>Pygrounds</title>
         <meta name="description" content="Best online Python playgrounds." />
       </Head>
-      <Script src="https://cdn.staticfile.org/pyodide/0.21.3/pyodide.min.js"
+      <Script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"
         onLoad={pyodideLoaded} 
       />
 
