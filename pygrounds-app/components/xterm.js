@@ -34,7 +34,7 @@ function XTerm(props) {
             term.open(document.getElementById('terminal'));
             term.loadAddon(new WebglAddon());
 
-            term.write(`Loading ${colors.bold.yellow("Pygrounds v0.1")} ... \r\n`)
+            term.write(`Loading ${colors.bold.yellow("Pygrounds v1.0")} ... \r\n`)
             fitAddon.fit();
 
             props.onLoad(term);

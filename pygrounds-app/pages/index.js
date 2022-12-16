@@ -9,6 +9,7 @@ import styles from '../styles/Home.module.css'
 // https://github.com/suren-atoyan/monaco-react
 import Editor from "@monaco-editor/react";
 import dynamic from "next/dynamic"
+import colors from 'ansi-colors';
 
 const XTerm = dynamic(() => import("../components/xterm"), {
   ssr: false,
@@ -20,9 +21,15 @@ export default function Home() {
   const editorRef = useRef(null);
   var pyodideRef = useRef(null);
   const xtermRef = useRef(null);
+  var startTime = useRef(null);
+  var stopTime = useRef(null);
 
   function stdout(msg) {
-    xtermRef.current.write(`\r\n${msg}`);
+    var output = `\r\n${msg}`
+    // if (msg == 'Python initialization complete') {
+    //   output = colors.gray(`\r\n${msg}`)
+    // }
+    xtermRef.current.write(output);
   }
 
   function stderr(msg) {
@@ -34,7 +41,10 @@ export default function Home() {
   }
 
   async function pyodideLoaded() {
-    console.log('Pyodide ready.')
+    stopTime = new Date();
+    const elasped = stopTime - startTime;
+
+    console.log(`Pyodide ready: ${ elasped }ms`)
     // https://pyodide.org/en/stable/usage/quickstart.html
     pyodideRef = await loadPyodide({stdout: stdout, stderr: stderr});
     // Pyodide is now ready to use...
@@ -42,17 +52,22 @@ export default function Home() {
       import sys
       sys.version
     `);
-    const pymsg = `\r\nPython ${msg}\r\n\r\n`;
-    xtermRef.current.write(pymsg);
+    var pymsg = `\r\nPyodide loaded in ${ elasped }ms.`;
+    xtermRef.current.write(colors.gray(pymsg));
+    pymsg = `\r\nPython ${msg}\r\n\r\n`;
+    xtermRef.current.write(colors.bold.yellow(pymsg));
   }
 
   async function onRun() {
     console.log(xtermRef.current.term);
 
     const code = editorRef.current.getValue();
-    xtermRef.current.write("\r\nLoading imports...")
+    startTime = new Date();
+    xtermRef.current.write(colors.gray("\r\nLoading imports..."))
     await pyodideRef.loadPackagesFromImports(code);
-    xtermRef.current.write("\r\nLoading imports done.\r\n")
+    stopTime = new Date()
+    const elasped = stopTime - startTime;
+    xtermRef.current.write(colors.gray(`\r\nLoading imports done: ${ elasped }ms.\r\n`))
     await pyodideRef.runPython(code);
   }
 
@@ -65,6 +80,7 @@ export default function Home() {
     {key: "m1", label: <Link href="https://github.com/twinsant/Pygrounds">Github</Link>},
   ]
 
+  startTime = new Date();
   return (
     <div className={styles.container}>
       <Head>
