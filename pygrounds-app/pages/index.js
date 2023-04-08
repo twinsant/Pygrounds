@@ -81,13 +81,14 @@ export default function Home() {
   ]
 
   startTime = new Date();
+
   return (
     <div className={styles.container}>
       <Head>
         <title>Pygrounds</title>
         <meta name="description" content="Best online Python playgrounds." />
       </Head>
-      <Script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"
+      <Script src="https://cdn.jsdelivr.net/pyodide/v0.23.0/full/pyodide.js"
         onLoad={pyodideLoaded} 
       />
 
