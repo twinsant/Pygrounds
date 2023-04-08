@@ -68,7 +68,12 @@ export default function Home() {
     stopTime = new Date()
     const elasped = stopTime - startTime;
     xtermRef.current.write(colors.gray(`\r\nLoading imports done: ${ elasped }ms.\r\n`))
-    await pyodideRef.runPython(code);
+    try {
+      await pyodideRef.runPython(code);
+    } catch (e) {
+      // console.log([e, e.message, e.stack]);
+      xtermRef.current.write(colors.red(`\r\n${e.message}\r\n`));
+    }
   }
 
   function editorDidMount(editor, monaco) {

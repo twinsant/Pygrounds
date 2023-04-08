@@ -17,6 +17,7 @@ function XTerm(props) {
                 cursorStyle: 'underline',
                 cursorBlink: true,
                 windowsMode: true,
+                convertEol: true,
             })
             const fitAddon = new FitAddon();
             term.loadAddon(fitAddon);
@@ -34,7 +35,7 @@ function XTerm(props) {
             term.open(document.getElementById('terminal'));
             term.loadAddon(new WebglAddon());
 
-            term.write(`Loading ${colors.bold.yellow("Pygrounds v1.0")} ... \r\n`)
+            term.write(`Loading ${colors.bold.yellow("Pygrounds v1.1")} ... \r\n`)
             fitAddon.fit();
 
             props.onLoad(term);
