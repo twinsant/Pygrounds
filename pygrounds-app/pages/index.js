@@ -40,22 +40,30 @@ export default function Home() {
     xtermRef.current = xterm;
   }
 
+  async function pyodideLoadError(e) {
+    console.log("Pyodide load error", e);
+  }
+
   async function pyodideLoaded() {
     stopTime = new Date();
     const elasped = stopTime - startTime;
 
     console.log(`Pyodide ready: ${ elasped }ms`)
-    // https://pyodide.org/en/stable/usage/quickstart.html
-    pyodideRef = await loadPyodide({stdout: stdout, stderr: stderr});
-    // Pyodide is now ready to use...
-    var msg = pyodideRef.runPython(`
-      import sys
-      sys.version
-    `);
-    var pymsg = `\r\nPyodide loaded in ${ elasped }ms.`;
-    xtermRef.current.write(colors.gray(pymsg));
-    pymsg = `\r\nPython ${msg}\r\n\r\n`;
-    xtermRef.current.write(colors.bold.yellow(pymsg));
+    try {
+      // https://pyodide.org/en/stable/usage/quickstart.html
+      pyodideRef = await loadPyodide({stdout: stdout, stderr: stderr});
+      // Pyodide is now ready to use...
+      var msg = pyodideRef.runPython(`
+        import sys
+        sys.version
+      `);
+      var pymsg = `\r\nPyodide loaded in ${ elasped }ms.`;
+      xtermRef.current.write(colors.gray(pymsg));
+      pymsg = `\r\nPython ${msg}\r\n\r\n`;
+      xtermRef.current.write(colors.bold.yellow(pymsg));
+    } catch (e) {
+      console.log(e.message)
+    }
   }
 
   async function onRun() {
@@ -93,8 +101,10 @@ export default function Home() {
         <title>Pygrounds</title>
         <meta name="description" content="Best online Python playgrounds." />
       </Head>
-      <Script src="https://cdn.jsdelivr.net/pyodide/v0.23.0/full/pyodide.js"
+      {/* <Script src="https://cdn.jsdelivr.net/pyodide/v0.23.0/full/pyodide.js" */}
+      <Script src="/pyodide-v0.23.0/pyodide.js"
         onLoad={pyodideLoaded} 
+        onError={pyodideLoadError}
       />
 
       <Layout className="layout">
