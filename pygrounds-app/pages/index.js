@@ -101,8 +101,8 @@ export default function Home() {
         <title>Pygrounds</title>
         <meta name="description" content="Best online Python playgrounds." />
       </Head>
-      {/* <Script src="https://cdn.jsdelivr.net/pyodide/v0.23.0/full/pyodide.js" */}
-      <Script src="/pyodide-v0.23.0/pyodide.js"
+      <Script src="https://cdn.jsdelivr.net/pyodide/v0.23.0/full/pyodide.js"
+      {/* <Script src="/pyodide-v0.23.0/pyodide.js" */}
         onLoad={pyodideLoaded} 
         onError={pyodideLoadError}
       />
