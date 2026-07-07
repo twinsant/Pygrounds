@@ -1,9 +1,9 @@
 // components/terminal-component
 import { useRef, useContext, useEffect } from 'react';
-import { Terminal } from 'xterm';
-import { FitAddon } from 'xterm-addon-fit';
-import { WebLinksAddon } from 'xterm-addon-web-links';
-import { WebglAddon } from 'xterm-addon-webgl';
+import { Terminal } from '@xterm/xterm';
+import { FitAddon } from '@xterm/addon-fit';
+import { WebLinksAddon } from '@xterm/addon-web-links';
+import { WebglAddon } from '@xterm/addon-webgl';
 import colors from 'ansi-colors';
 
 function XTerm(props) {
@@ -35,7 +35,7 @@ function XTerm(props) {
             term.open(document.getElementById('terminal'));
             term.loadAddon(new WebglAddon());
 
-            term.write(`Loading ${colors.bold.yellow("Pygrounds v1.1")} ... \r\n`)
+            term.write(`Loading ${colors.bold.yellow("Pygrounds v2.0")} ... \r\n`)
             fitAddon.fit();
 
             props.onLoad(term);

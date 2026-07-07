@@ -1,9 +1,9 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import Head from 'next/head'
 import Script from 'next/script'
 import Link from 'next/link'
-import { Button, Breadcrumb, Layout, Menu } from 'antd';
-import { PlayCircleOutlined } from '@ant-design/icons';
+import { Button, Breadcrumb, Layout, Menu, Progress } from 'antd';
+import { PlayCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 import { Col, Row } from 'antd';
 import styles from '../styles/Home.module.css'
 // https://github.com/suren-atoyan/monaco-react
@@ -19,10 +19,13 @@ const { Header, Content, Footer } = Layout;
 
 export default function Home() {
   const editorRef = useRef(null);
-  var pyodideRef = useRef(null);
+  const pyodideRef = useRef(null);
   const xtermRef = useRef(null);
   var startTime = useRef(null);
   var stopTime = useRef(null);
+  const [pyodideLoading, setPyodideLoading] = useState(true);
+  const [loadProgress, setLoadProgress] = useState(0);
+  const progressTimer = useRef(null);
 
   function stdout(msg) {
     var output = `\r\n${msg}`
@@ -44,40 +47,69 @@ export default function Home() {
     console.log("Pyodide load error", e);
   }
 
+  function startProgressTimer() {
+    progressTimer.current = setInterval(() => {
+      setLoadProgress(prev => {
+        if (prev >= 90) return prev;
+        return prev + Math.random() * 0.5;
+      });
+    }, 200);
+  }
+
+  function stopProgressTimer() {
+    if (progressTimer.current) {
+      clearInterval(progressTimer.current);
+      progressTimer.current = null;
+    }
+  }
+
   async function pyodideLoaded() {
     stopTime = new Date();
     const elasped = stopTime - startTime;
 
     console.log(`Pyodide ready: ${ elasped }ms`)
+    setLoadProgress(50);
+    startProgressTimer();
     try {
       // https://pyodide.org/en/stable/usage/quickstart.html
-      pyodideRef = await loadPyodide({stdout: stdout, stderr: stderr});
+      pyodideRef.current = await loadPyodide({
+        indexURL: "https://cdn.jsdelivr.net/pyodide/v314.0.2/full/",
+        stdout: stdout,
+        stderr: stderr
+      });
       // Pyodide is now ready to use...
-      var msg = pyodideRef.runPython(`
+      var msg = pyodideRef.current.runPython(`
         import sys
         sys.version
       `);
+      stopProgressTimer();
+      setLoadProgress(100);
       var pymsg = `\r\nPyodide loaded in ${ elasped }ms.`;
       xtermRef.current.write(colors.gray(pymsg));
       pymsg = `\r\nPython ${msg}\r\n\r\n`;
       xtermRef.current.write(colors.bold.yellow(pymsg));
+      setTimeout(() => setPyodideLoading(false), 300);
     } catch (e) {
+      stopProgressTimer();
       console.log(e.message)
     }
   }
 
   async function onRun() {
-    console.log(xtermRef.current.term);
+    if (!pyodideRef.current) {
+      xtermRef.current.write(colors.red("\r\nPyodide is not ready yet, please wait...\r\n"));
+      return;
+    }
 
     const code = editorRef.current.getValue();
     startTime = new Date();
     xtermRef.current.write(colors.gray("\r\nLoading imports..."))
-    await pyodideRef.loadPackagesFromImports(code);
+    await pyodideRef.current.loadPackagesFromImports(code);
     stopTime = new Date()
     const elasped = stopTime - startTime;
     xtermRef.current.write(colors.gray(`\r\nLoading imports done: ${ elasped }ms.\r\n`))
     try {
-      await pyodideRef.runPython(code);
+      await pyodideRef.current.runPython(code);
     } catch (e) {
       // console.log([e, e.message, e.stack]);
       xtermRef.current.write(colors.red(`\r\n${e.message}\r\n`));
@@ -94,6 +126,7 @@ export default function Home() {
   ]
 
   startTime = new Date();
+  startProgressTimer();
 
   return (
     <div className={styles.container}>
@@ -101,7 +134,7 @@ export default function Home() {
         <title>Pygrounds</title>
         <meta name="description" content="Best online Python playgrounds." />
       </Head>
-      <Script src="/pyodide-v0.23.0/pyodide.js"
+      <Script src="https://cdn.jsdelivr.net/pyodide/v314.0.2/full/pyodide.js"
         onLoad={pyodideLoaded} 
         onError={pyodideLoadError}
       />
@@ -130,7 +163,33 @@ export default function Home() {
             <Breadcrumb.Item>Pygrounds</Breadcrumb.Item>
             <Breadcrumb.Item>Hello, World!</Breadcrumb.Item>
           </Breadcrumb>
-          <div>
+          <div style={{position: 'relative'}}>
+            {pyodideLoading && (
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0, 0, 0, 0.7)',
+                zIndex: 10,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '8px',
+              }}>
+                <LoadingOutlined style={{fontSize: 32, color: '#1677ff', marginBottom: 16}} />
+                <div style={{color: '#fff', marginBottom: 16, fontSize: 14}}>
+                  Loading Pyodide...
+                </div>
+                <Progress
+                  percent={Math.round(loadProgress)}
+                  style={{width: '60%'}}
+                  status="active"
+                />
+              </div>
+            )}
             <Row>
               <Col span={12}>
               <Editor
@@ -147,6 +206,7 @@ export default function Home() {
                   type="primary"
                   icon={<PlayCircleOutlined />}
                   shape='circle'
+                  disabled={pyodideLoading}
                   onClick={onRun} />
               </Col>
               <Col span={11}>
@@ -160,7 +220,7 @@ export default function Home() {
             textAlign: 'center',
           }}
         >
-          <p><b>Pygrounds</b> ©2022 &#10084;&#65039; by <a href="https://twitter.com/twinsant"><u>twinsant</u></a></p>
+          <p><b>Pygrounds</b> ©2026 &#10084;&#65039; by <a href="https://twitter.com/twinsant"><u>twinsant</u></a></p>
           <p style={{color: 'gray'}}>Powered with Pyodide & Monaco Editor</p>
         </Footer>
       </Layout>
