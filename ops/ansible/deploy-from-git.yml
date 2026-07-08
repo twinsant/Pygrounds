@@ -164,7 +164,7 @@
       ansible.builtin.shell: |
         set -e
         export PATH=/root/.bun/bin:/usr/local/bin:/usr/bin:/bin
-        bun run build
+        bun ./node_modules/next/dist/bin/next build
       args:
         chdir: "{{ app_path }}"
         executable: /bin/bash

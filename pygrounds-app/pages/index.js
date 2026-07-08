@@ -8,7 +8,14 @@ import { Col, Row } from 'antd';
 import styles from '../styles/Home.module.css'
 // https://github.com/suren-atoyan/monaco-react
 import dynamic from "next/dynamic"
-import colors from 'ansi-colors';
+
+const plainColors = {
+  gray: (text) => text,
+  red: (text) => text,
+  bold: {
+    yellow: (text) => text,
+  },
+}
 
 const Editor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
@@ -24,11 +31,30 @@ export default function Home() {
   const editorRef = useRef(null);
   const pyodideRef = useRef(null);
   const xtermRef = useRef(null);
+  const colorsRef = useRef(plainColors);
   var startTime = useRef(null);
   var stopTime = useRef(null);
   const [pyodideLoading, setPyodideLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const progressTimer = useRef(null);
+
+  useEffect(() => {
+    let active = true;
+
+    import('ansi-colors')
+      .then((mod) => {
+        if (active) {
+          colorsRef.current = mod.default ?? mod;
+        }
+      })
+      .catch(() => {
+        colorsRef.current = plainColors;
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function stdout(msg) {
     var output = `\r\n${msg}`
@@ -88,9 +114,9 @@ export default function Home() {
       stopProgressTimer();
       setLoadProgress(100);
       var pymsg = `\r\nPyodide loaded in ${ elasped }ms.`;
-      xtermRef.current.write(colors.gray(pymsg));
+      xtermRef.current.write(colorsRef.current.gray(pymsg));
       pymsg = `\r\nPython ${msg}\r\n\r\n`;
-      xtermRef.current.write(colors.bold.yellow(pymsg));
+      xtermRef.current.write(colorsRef.current.bold.yellow(pymsg));
       setTimeout(() => setPyodideLoading(false), 300);
     } catch (e) {
       stopProgressTimer();
@@ -100,22 +126,22 @@ export default function Home() {
 
   async function onRun() {
     if (!pyodideRef.current) {
-      xtermRef.current.write(colors.red("\r\nPyodide is not ready yet, please wait...\r\n"));
+      xtermRef.current.write(colorsRef.current.red("\r\nPyodide is not ready yet, please wait...\r\n"));
       return;
     }
 
     const code = editorRef.current.getValue();
     startTime = new Date();
-    xtermRef.current.write(colors.gray("\r\nLoading imports..."))
+    xtermRef.current.write(colorsRef.current.gray("\r\nLoading imports..."))
     await pyodideRef.current.loadPackagesFromImports(code);
     stopTime = new Date()
     const elasped = stopTime - startTime;
-    xtermRef.current.write(colors.gray(`\r\nLoading imports done: ${ elasped }ms.\r\n`))
+    xtermRef.current.write(colorsRef.current.gray(`\r\nLoading imports done: ${ elasped }ms.\r\n`))
     try {
       await pyodideRef.current.runPython(code);
     } catch (e) {
       // console.log([e, e.message, e.stack]);
-      xtermRef.current.write(colors.red(`\r\n${e.message}\r\n`));
+      xtermRef.current.write(colorsRef.current.red(`\r\n${e.message}\r\n`));
     }
   }
 

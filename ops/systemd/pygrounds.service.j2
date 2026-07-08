@@ -7,7 +7,7 @@ Type=simple
 WorkingDirectory={{ app_path }}
 Environment=PATH=/root/.bun/bin:/usr/local/bin:/usr/bin:/bin
 Environment=NODE_ENV={{ node_env }}
-ExecStart=/usr/bin/env bun run start -- --hostname {{ listen_host }} --port {{ app_port }}
+ExecStart=/usr/bin/env bun {{ app_path }}/node_modules/next/dist/bin/next start --hostname {{ listen_host }} --port {{ app_port }}
 Restart=always
 RestartSec=3
 User=root
