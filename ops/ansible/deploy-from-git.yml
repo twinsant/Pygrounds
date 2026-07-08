@@ -1,0 +1,212 @@
+---
+- name: Deploy Pygrounds from git and restart systemd service
+  hosts: app
+  gather_facts: false
+  vars:
+    repo_url: ""
+    repo_path: /root/projects/Pygrounds
+    app_path: /root/projects/Pygrounds/pygrounds-app
+    target_branch: main
+    allow_dirty_worktree: false
+    service_name: pygrounds
+    app_port: 3001
+    install_dependencies: true
+    healthcheck_url: "http://127.0.0.1:{{ app_port }}/"
+
+  tasks:
+    - name: Assert repo_url is provided
+      ansible.builtin.assert:
+        that:
+          - repo_url | length > 0
+        fail_msg: "repo_url is required. Pass it via -e repo_url=<git_repo_url> or --repo-url in the wrapper script."
+
+    - name: Ensure remote project parent directory exists
+      ansible.builtin.file:
+        path: /root/projects
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Check remote repo exists
+      ansible.builtin.stat:
+        path: "{{ repo_path }}/.git"
+      register: repo_git_dir
+
+    - name: Check remote repo path exists
+      ansible.builtin.stat:
+        path: "{{ repo_path }}"
+      register: repo_path_stat
+
+    - name: Clone repository when missing
+      ansible.builtin.command: "git clone --branch {{ target_branch }} {{ repo_url }} {{ repo_path }}"
+      register: git_clone
+      changed_when: true
+      when:
+        - not repo_git_dir.stat.exists
+        - not repo_path_stat.stat.exists
+
+    - name: Initialize git repository when directory exists without .git
+      ansible.builtin.command: "git init {{ repo_path }}"
+      changed_when: true
+      when:
+        - not repo_git_dir.stat.exists
+        - repo_path_stat.stat.exists
+
+    - name: Check origin remote exists
+      ansible.builtin.shell: |
+        set -e
+        git remote | grep -Fx origin
+      args:
+        chdir: "{{ repo_path }}"
+        executable: /bin/bash
+      register: origin_remote
+      changed_when: false
+      failed_when: false
+
+    - name: Check remote worktree status when repo exists
+      ansible.builtin.command: git status --short
+      args:
+        chdir: "{{ repo_path }}"
+      register: git_status
+      changed_when: false
+      when: repo_git_dir.stat.exists
+
+    - name: Filter allowed remote-local files from worktree status
+      ansible.builtin.set_fact:
+        git_status_effective_lines: >-
+          {{
+            (git_status.stdout_lines | default([]))
+            | reject('equalto', '?? pygrounds-app/.env.local')
+            | reject('equalto', '?? pygrounds-app/.env.production.local')
+            | list
+          }}
+      when: repo_git_dir.stat.exists
+
+    - name: Assert remote worktree is clean by default
+      ansible.builtin.assert:
+        that:
+          - allow_dirty_worktree | bool or (git_status_effective_lines | default([]) | length == 0)
+        fail_msg: >-
+          Remote worktree is dirty at {{ repo_path }}. Refusing git-based deploy.
+          Current status: {{ git_status_effective_lines | default([]) }}
+        success_msg: "Remote worktree is clean"
+      when: repo_git_dir.stat.exists
+
+    - name: Stash remote worktree changes when dirty deploy is allowed
+      ansible.builtin.command: git stash save --include-untracked pygrounds-ansible-deploy
+      args:
+        chdir: "{{ repo_path }}"
+      register: git_stash
+      changed_when: "'No local changes to save' not in git_stash.stdout"
+      when:
+        - repo_git_dir.stat.exists
+        - allow_dirty_worktree | bool
+        - (git_status_effective_lines | default([]) | length) > 0
+
+    - name: Ensure origin URL matches requested repo
+      ansible.builtin.command: "git remote set-url origin {{ repo_url }}"
+      args:
+        chdir: "{{ repo_path }}"
+      changed_when: false
+      when: origin_remote.rc == 0
+
+    - name: Add origin remote when missing
+      ansible.builtin.command: "git remote add origin {{ repo_url }}"
+      args:
+        chdir: "{{ repo_path }}"
+      changed_when: true
+      when: origin_remote.rc != 0
+
+    - name: Fetch target branch from origin into remote-tracking ref
+      ansible.builtin.command: "git fetch origin {{ target_branch }}:refs/remotes/origin/{{ target_branch }}"
+      args:
+        chdir: "{{ repo_path }}"
+      changed_when: false
+
+    - name: Checkout target branch from fetched remote ref
+      ansible.builtin.command: "git checkout -B {{ target_branch }} refs/remotes/origin/{{ target_branch }}"
+      args:
+        chdir: "{{ repo_path }}"
+      changed_when: true
+
+    - name: Pull latest code with fast-forward only
+      ansible.builtin.command: "git pull --ff-only origin {{ target_branch }}"
+      args:
+        chdir: "{{ repo_path }}"
+      register: git_pull
+      changed_when: "'Already up to date.' not in git_pull.stdout"
+
+    - name: Verify Bun runtime
+      ansible.builtin.shell: |
+        set -e
+        export PATH=/root/.bun/bin:/usr/local/bin:/usr/bin:/bin
+        bun --version
+      args:
+        chdir: "{{ app_path }}"
+        executable: /bin/bash
+      register: bun_runtime
+      changed_when: false
+
+    - name: Install dependencies with bun lockfile
+      ansible.builtin.shell: |
+        set -e
+        export PATH=/root/.bun/bin:/usr/local/bin:/usr/bin:/bin
+        bun install --frozen-lockfile
+      args:
+        chdir: "{{ app_path }}"
+        executable: /bin/bash
+      register: bun_install
+      changed_when: false
+      when: install_dependencies | bool
+
+    - name: Build Pygrounds app
+      ansible.builtin.shell: |
+        set -e
+        export PATH=/root/.bun/bin:/usr/local/bin:/usr/bin:/bin
+        bun run build
+      args:
+        chdir: "{{ app_path }}"
+        executable: /bin/bash
+      register: build_result
+      changed_when: false
+
+    - name: Check if systemd service is loaded
+      ansible.builtin.command: "systemctl show {{ service_name }} --property=LoadState --value"
+      register: systemd_load_state
+      changed_when: false
+      failed_when: false
+
+    - name: Assert Pygrounds systemd service exists
+      ansible.builtin.assert:
+        that:
+          - systemd_load_state.stdout | trim != 'not-found'
+        fail_msg: "Systemd service {{ service_name }} is missing. Run ops/deploy-systemd.sh first."
+
+    - name: Restart Pygrounds systemd service
+      ansible.builtin.command: "systemctl restart {{ service_name }}"
+      changed_when: true
+
+    - name: Check Pygrounds systemd status
+      ansible.builtin.command: "systemctl status {{ service_name }} --no-pager"
+      register: systemd_status
+      changed_when: false
+
+    - name: Wait for local healthcheck
+      ansible.builtin.uri:
+        url: "{{ healthcheck_url }}"
+        method: GET
+        status_code: 200
+      register: healthcheck_result
+      retries: 10
+      delay: 2
+      until: healthcheck_result.status == 200
+
+    - name: Show deployment summary
+      ansible.builtin.debug:
+        msg:
+          - "bun={{ bun_runtime.stdout_lines | default([]) }}"
+          - "git_clone={{ git_clone.stdout_lines | default([]) }}"
+          - "git_pull={{ git_pull.stdout_lines | default([]) }}"
+          - "service={{ systemd_status.stdout_lines[-10:] if (systemd_status.stdout_lines | length) > 10 else systemd_status.stdout_lines }}"
+          - "healthcheck_status={{ healthcheck_result.status }}"

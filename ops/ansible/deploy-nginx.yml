@@ -1,0 +1,94 @@
+---
+- name: Install and configure nginx for Pygrounds
+  hosts: app
+  gather_facts: true
+  vars:
+    nginx_config_path: /etc/nginx/conf.d/python.twinsant.com.conf
+    local_nginx_template: /Users/twinsant/projects/Pygrounds/ops/nginx/pygrounds.conf.template
+    server_name: python.twinsant.com
+    upstream_host: 127.0.0.1
+    upstream_port: 3001
+    enable_tls: true
+    manage_tls_assets: false
+    nginx_ssl_cert_path: /etc/nginx/python.twinsant.com_bundle.crt
+    nginx_ssl_key_path: /etc/nginx/python.twinsant.com.key
+    ssl_cert_local_path: ""
+    ssl_key_local_path: ""
+
+  tasks:
+    - name: Check if nginx is already installed
+      ansible.builtin.command: which nginx
+      register: nginx_check
+      changed_when: false
+      failed_when: false
+
+    - name: Install nginx
+      ansible.builtin.package:
+        name: nginx
+        state: present
+      when: nginx_check.rc != 0
+
+    - name: Assert local ssl files are provided when tls enabled
+      ansible.builtin.assert:
+        that:
+          - ssl_cert_local_path | length > 0
+          - ssl_key_local_path | length > 0
+        fail_msg: "TLS deployment requires ssl_cert_local_path and ssl_key_local_path."
+      when:
+        - enable_tls | bool
+        - manage_tls_assets | bool
+
+    - name: Copy ssl certificate when tls enabled
+      ansible.builtin.copy:
+        src: "{{ ssl_cert_local_path }}"
+        dest: "{{ nginx_ssl_cert_path }}"
+        owner: root
+        group: root
+        mode: "0644"
+      register: ssl_cert_result
+      when:
+        - enable_tls | bool
+        - manage_tls_assets | bool
+
+    - name: Copy ssl private key when tls enabled
+      ansible.builtin.copy:
+        src: "{{ ssl_key_local_path }}"
+        dest: "{{ nginx_ssl_key_path }}"
+        owner: root
+        group: root
+        mode: "0600"
+      register: ssl_key_result
+      when:
+        - enable_tls | bool
+        - manage_tls_assets | bool
+
+    - name: Ensure nginx service is enabled and started
+      ansible.builtin.systemd:
+        name: nginx
+        enabled: true
+        state: started
+
+    - name: Deploy nginx config from local template
+      ansible.builtin.template:
+        src: "{{ local_nginx_template }}"
+        dest: "{{ nginx_config_path }}"
+        owner: root
+        group: root
+        mode: "0644"
+      register: nginx_config_result
+
+    - name: Validate nginx configuration
+      ansible.builtin.command: nginx -t
+      changed_when: false
+
+    - name: Reload nginx when config changed
+      ansible.builtin.command: systemctl reload nginx
+      changed_when: true
+      when: nginx_config_result.changed or (ssl_cert_result is defined and ssl_cert_result.changed) or (ssl_key_result is defined and ssl_key_result.changed)
+
+    - name: Show nginx deployment summary
+      ansible.builtin.debug:
+        msg:
+          - "config={{ nginx_config_path }}"
+          - "server_name={{ server_name }}"
+          - "tls={{ enable_tls | bool }}"

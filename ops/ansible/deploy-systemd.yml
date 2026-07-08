@@ -1,0 +1,174 @@
+---
+- name: Install and configure systemd service for Pygrounds
+  hosts: app
+  gather_facts: true
+  vars:
+    service_name: pygrounds
+    repo_path: /root/projects/Pygrounds
+    app_path: /root/projects/Pygrounds/pygrounds-app
+    app_port: 3001
+    listen_host: 127.0.0.1
+    node_env: production
+    unit_path: "/etc/systemd/system/{{ service_name }}.service"
+    start_service: false
+    download_proxy_url: socks5h://127.0.0.1:1234
+    bun_archive_local_path: ""
+    bun_install_root: /root/.bun
+    bun_bin_dir: "{{ bun_install_root }}/bin"
+    bun_extract_dir: /tmp/pygrounds-bun-install
+    bun_extracted_binary_path: "{{ bun_extract_dir }}/bun-linux-x64/bun"
+
+  tasks:
+    - name: Check bun exists
+      ansible.builtin.shell: |
+        set -e
+        export PATH=/root/.bun/bin:/usr/local/bin:/usr/bin:/bin
+        command -v bun
+      args:
+        executable: /bin/bash
+      register: bun_check
+      changed_when: false
+      failed_when: false
+
+    - name: Install bun when missing
+      ansible.builtin.shell: |
+        set -e
+        export ALL_PROXY="{{ download_proxy_url }}"
+        export HTTPS_PROXY="{{ download_proxy_url }}"
+        export HTTP_PROXY="{{ download_proxy_url }}"
+        curl -fsSL https://bun.sh/install | bash
+      args:
+        executable: /bin/bash
+      register: bun_install
+      changed_when: true
+      when:
+        - bun_check.rc != 0
+        - bun_archive_local_path | length == 0
+
+    - name: Ensure bun bin directory exists when installing from local archive
+      ansible.builtin.file:
+        path: "{{ bun_bin_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      when:
+        - bun_check.rc != 0
+        - bun_archive_local_path | length > 0
+
+    - name: Remove previous bun extraction directory when installing from local archive
+      ansible.builtin.file:
+        path: "{{ bun_extract_dir }}"
+        state: absent
+      when:
+        - bun_check.rc != 0
+        - bun_archive_local_path | length > 0
+
+    - name: Recreate bun extraction directory when installing from local archive
+      ansible.builtin.file:
+        path: "{{ bun_extract_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      when:
+        - bun_check.rc != 0
+        - bun_archive_local_path | length > 0
+
+    - name: Extract bun from local archive when provided
+      ansible.builtin.unarchive:
+        src: "{{ bun_archive_local_path }}"
+        dest: "{{ bun_extract_dir }}"
+        remote_src: false
+        owner: root
+        group: root
+      register: bun_unarchive
+      when:
+        - bun_check.rc != 0
+        - bun_archive_local_path | length > 0
+
+    - name: Install bun binary from extracted archive
+      ansible.builtin.copy:
+        src: "{{ bun_extracted_binary_path }}"
+        dest: "{{ bun_bin_dir }}/bun"
+        remote_src: true
+        owner: root
+        group: root
+        mode: "0755"
+      register: bun_copy
+      when:
+        - bun_check.rc != 0
+        - bun_archive_local_path | length > 0
+
+    - name: Verify bun exists after installation
+      ansible.builtin.shell: |
+        set -e
+        export PATH=/root/.bun/bin:/usr/local/bin:/usr/bin:/bin
+        command -v bun
+        bun --version
+      args:
+        executable: /bin/bash
+      register: bun_verify
+      changed_when: false
+
+    - name: Assert bun exists
+      ansible.builtin.assert:
+        that:
+          - (bun_check.rc == 0) or (bun_verify.rc == 0)
+        fail_msg: "bun must be installed on the remote host before deploying Pygrounds"
+
+    - name: Check if remote app files exist
+      ansible.builtin.stat:
+        path: "{{ app_path }}/package.json"
+      register: package_json_stat
+
+    - name: Deploy systemd unit
+      ansible.builtin.template:
+        src: /Users/twinsant/projects/Pygrounds/ops/systemd/pygrounds.service.j2
+        dest: "{{ unit_path }}"
+        owner: root
+        group: root
+        mode: "0644"
+      register: unit_result
+
+    - name: Reload systemd daemon when unit changed
+      ansible.builtin.command: systemctl daemon-reload
+      changed_when: true
+      when: unit_result.changed
+
+    - name: Enable Pygrounds service
+      ansible.builtin.systemd:
+        name: "{{ service_name }}"
+        enabled: true
+
+    - name: Restart Pygrounds service when requested
+      ansible.builtin.systemd:
+        name: "{{ service_name }}"
+        state: restarted
+      when:
+        - start_service | bool
+        - package_json_stat.stat.exists
+
+    - name: Show deferred startup message when project files are missing
+      ansible.builtin.debug:
+        msg: "Systemd unit deployed, but {{ app_path }}/package.json is missing so the app was not started."
+      when: not package_json_stat.stat.exists
+
+    - name: Show deferred startup message when startup is not requested
+      ansible.builtin.debug:
+        msg: "Systemd unit deployed. Run deploy-from-git after this, or rerun with -e start_service=true after code is present on the remote host."
+      when:
+        - package_json_stat.stat.exists
+        - not start_service | bool
+
+    - name: Check service status when app files exist
+      ansible.builtin.command: "systemctl status {{ service_name }} --no-pager"
+      register: service_status
+      changed_when: false
+      failed_when: false
+      when: package_json_stat.stat.exists
+
+    - name: Show service status
+      ansible.builtin.debug:
+        msg: "{{ service_status.stdout_lines | default(['status skipped']) }}"
+      when: package_json_stat.stat.exists

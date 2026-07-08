@@ -7,9 +7,12 @@ import { PlayCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 import { Col, Row } from 'antd';
 import styles from '../styles/Home.module.css'
 // https://github.com/suren-atoyan/monaco-react
-import Editor from "@monaco-editor/react";
 import dynamic from "next/dynamic"
 import colors from 'ansi-colors';
+
+const Editor = dynamic(() => import("@monaco-editor/react"), {
+  ssr: false,
+})
 
 const XTerm = dynamic(() => import("../components/xterm"), {
   ssr: false,
