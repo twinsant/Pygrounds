@@ -2,7 +2,8 @@
 
 Python online playgrounds — 在浏览器中直接编写并运行 Python 代码，无需本地安装。
 
-<img width="1785" alt="image" src="https://user-images.githubusercontent.com/299586/208342791-14186011-215a-43e1-a317-8fe121d63232.png">
+<img width="2992" height="1696" alt="c3b85e9236aa025ace65c54a935a980c" src="https://github.com/user-attachments/assets/af44a195-90fe-4ca4-a4b8-0895bb481c72" />
+
 
 ## 技术栈
 
