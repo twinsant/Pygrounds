@@ -92,4 +92,4 @@ exec "${ANSIBLE_PLAYBOOK_BIN}" \
   -e "repo_url=${REPO_URL}" \
   -e "target_branch=${TARGET_BRANCH}" \
   -e "install_dependencies=${INSTALL_DEPENDENCIES}" \
-  "${PASSTHROUGH_ARGS[@]}"
+  "${PASSTHROUGH_ARGS[@]+${PASSTHROUGH_ARGS[@]}}"

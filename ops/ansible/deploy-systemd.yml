@@ -5,7 +5,7 @@
   vars:
     service_name: pygrounds
     repo_path: /root/projects/Pygrounds
-    app_path: /root/projects/Pygrounds/pygrounds-app
+    app_path: /root/projects/Pygrounds/apps/web
     app_port: 3001
     listen_host: 127.0.0.1
     node_env: production

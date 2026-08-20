@@ -13,19 +13,43 @@ Python online playgrounds — 在浏览器中直接编写并运行 Python 代码
 - **xterm.js** — 终端模拟器（含 WebGL / Fit / WebLinks 插件）
 - **Pyodide** — 浏览器端 Python 运行时（WebAssembly 版 CPython）
 
+## 项目结构
+
+```text
+Pygrounds/
+├── apps/
+│   ├── web/                       # 在线版 Next.js 应用
+│   └── desktop/                   # Tauri 桌面客户端
+├── packages/
+│   ├── app-ui/                    # 跨平台 React UI 边界
+│   ├── python-runtime/            # Pyodide 运行时适配
+│   ├── file-storage/              # 浏览器/桌面文件存储适配
+│   └── pyodide-assets/            # 统一 Pyodide 版本
+└── ops/                           # 在线版部署配置
+```
+
+在线版和桌面版共享运行时接口与文件模型，但各自保留平台入口。桌面版不会参与在线站点部署。
+
 ## 快速开始
 
 ```bash
-cd pygrounds-app
 bun install
-bun dev      # 开发模式，http://localhost:3001
+bun run dev:web       # 在线版，http://localhost:3001
+bun run dev:desktop   # Tauri 开发窗口
+bun run tauri:icon    # 生成 Tauri 图标资源
+```
+
+如果移动目录、切换 workspace 依赖或升级 Next.js 后出现模块路径缓存错误，先运行：
+
+```bash
+bun run dev:web:clean
 ```
 
 生产构建：
 
 ```bash
-bun build
-bun start    # 生产模式，http://localhost:3001
+bun run build:web
+bun --cwd apps/web start
 ```
 
 ## 部署到主机 t
@@ -63,25 +87,6 @@ bun start    # 生产模式，http://localhost:3001
 3. 用户在左侧 Monaco Editor 编写 Python 代码
 4. 点击运行按钮，Pyodide 自动加载导入包并执行代码
 5. 输出结果实时显示在右侧 xterm 终端中
-
-## 项目结构
-
-```
-Pygrounds/
-├── README.md
-├── LICENSE
-└── pygrounds-app/
-    ├── pages/
-    │   ├── index.js       # 主页面：编辑器 + 终端 + 运行逻辑
-    │   ├── _app.js        # 全局应用配置
-    │   ├── _document.js   # HTML 文档配置
-    │   └── api/hello.js   # 示例 API 路由
-    ├── components/
-    │   └── xterm.js       # XTerm 终端组件
-    ├── styles/            # CSS 样式
-    ├── public/            # 静态资源
-    └── next.config.js     # Next.js 配置
-```
 
 ## License
 

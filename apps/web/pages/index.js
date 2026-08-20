@@ -6,6 +6,9 @@ import { Button, Breadcrumb, Layout, Menu, Progress } from 'antd';
 import { PlayCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 import { Col, Row } from 'antd';
 import styles from '../styles/Home.module.css'
+import { PlaygroundShell } from '@pygrounds/app-ui'
+import { BrowserFileStorage } from '@pygrounds/file-storage'
+import { PyodideRuntime } from '@pygrounds/python-runtime'
 // https://github.com/suren-atoyan/monaco-react
 import dynamic from "next/dynamic"
 
@@ -35,6 +38,7 @@ export default function Home() {
   const vimStatusRef = useRef(null);
   const vimModeRef = useRef(null);
   const pyodideRef = useRef(null);
+  const fileStorageRef = useRef(null);
   const xtermRef = useRef(null);
   const terminalModeRef = useRef('shell');
   const replBufferRef = useRef([]);
@@ -48,6 +52,13 @@ export default function Home() {
   const [currentFileName, setCurrentFileName] = useState('unamed.py');
   const [editingFileName, setEditingFileName] = useState(false);
   const progressTimer = useRef(null);
+
+  function fileStorage() {
+    if (!fileStorageRef.current) {
+      fileStorageRef.current = new BrowserFileStorage();
+    }
+    return fileStorageRef.current;
+  }
 
   useEffect(() => {
     let active = true;
@@ -271,12 +282,12 @@ export default function Home() {
     startProgressTimer();
     try {
       // https://pyodide.org/en/stable/usage/quickstart.html
-      pyodideRef.current = await loadPyodide({
+      pyodideRef.current = await new PyodideRuntime({
         indexURL: "https://cdn.jsdelivr.net/pyodide/v314.0.2/full/",
         stdout: stdout,
         stderr: stderr,
         stdin: () => null
-      });
+      }).load();
       globalThis.__pygrounds_input = requestTerminalInput;
       // Pyodide is now ready to use...
       var msg = pyodideRef.current.runPython(`
@@ -330,7 +341,7 @@ export default function Home() {
         saveEditorToHome();
       }
     });
-    const savedCode = localStorage.getItem(INITIAL_FILE_PATH);
+    const savedCode = fileStorage().getItem(INITIAL_FILE_PATH);
     if (savedCode !== null) {
       editor.setValue(savedCode);
     }
@@ -345,7 +356,7 @@ export default function Home() {
 
     const code = editorRef.current.getValue();
     const filePath = currentFilePathRef.current;
-    localStorage.setItem(filePath, code);
+    fileStorage().setItem(filePath, code);
     setVirtualFiles(listVirtualHomeFiles());
     xtermRef.current?.write(`\r\nSaved ${filePath}\r\n`);
     if (xtermRef.current) {
@@ -363,7 +374,7 @@ export default function Home() {
 
   function listVirtualHomeFiles() {
     const prefix = `${HOME_DIRECTORY}/`;
-    return Object.keys(localStorage)
+    return fileStorage().keys()
       .filter(key => key.startsWith(prefix))
       .map(key => key.slice(prefix.length))
       .filter(fileName => fileName && !fileName.includes('/'))
@@ -372,7 +383,7 @@ export default function Home() {
 
   function openVirtualFile(fileName) {
     const filePath = virtualFilePath(fileName);
-    const savedCode = localStorage.getItem(filePath);
+    const savedCode = fileStorage().getItem(filePath);
     if (savedCode === null) {
       xtermRef.current.write(`\r\nopen: ${fileName}: No such file\r\n`);
       writeTerminalPrompt(true);
@@ -389,14 +400,14 @@ export default function Home() {
   function renameVirtualFile(sourceName, targetName) {
     const sourcePath = virtualFilePath(sourceName);
     const targetPath = virtualFilePath(targetName);
-    const savedCode = localStorage.getItem(sourcePath);
+    const savedCode = fileStorage().getItem(sourcePath);
     if (savedCode === null) {
       xtermRef.current.write(`\r\nmv: ${sourceName}: No such file\r\n`);
-    } else if (localStorage.getItem(targetPath) !== null) {
+    } else if (fileStorage().getItem(targetPath) !== null) {
       xtermRef.current.write(`\r\nmv: ${targetName}: File exists\r\n`);
     } else {
-      localStorage.setItem(targetPath, savedCode);
-      localStorage.removeItem(sourcePath);
+      fileStorage().setItem(targetPath, savedCode);
+      fileStorage().removeItem(sourcePath);
       if (currentFilePathRef.current === sourcePath) {
         currentFilePathRef.current = targetPath;
         setCurrentFileName(targetPath.split('/').pop());
@@ -455,7 +466,8 @@ export default function Home() {
   startProgressTimer();
 
   return (
-    <div className={styles.container}>
+    <PlaygroundShell>
+      <div className={styles.container}>
       <Head>
         <title>Pygrounds</title>
         <meta name="description" content="Best online Python playgrounds." />
@@ -604,6 +616,7 @@ export default function Home() {
           <p style={{color: 'gray', margin: '2px 0'}}>Powered with Pyodide & Monaco Editor</p>
         </Footer>
       </Layout>
-    </div>
+      </div>
+    </PlaygroundShell>
   )
 }

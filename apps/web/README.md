@@ -1,4 +1,4 @@
-# Pygrounds App
+# Pygrounds Web
 
 Pygrounds 的前端应用，基于 Next.js 构建。
 
@@ -13,7 +13,7 @@ Pygrounds 的前端应用，基于 Next.js 构建。
 ## 开发
 
 ```bash
-bun install
+bun --cwd ../.. install
 bun dev      # http://localhost:3001
 ```
 
@@ -27,7 +27,7 @@ bun start    # http://localhost:3001
 ## 目录结构
 
 ```
-pygrounds-app/
+apps/web/
 ├── pages/
 │   ├── index.js       # 主页面：编辑器 + 终端 + 运行逻辑
 │   ├── _app.js        # 全局应用配置

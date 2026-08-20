@@ -1,0 +1,18 @@
+{
+  "name": "pygrounds",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "bun --cwd apps/web dev",
+    "dev:web:clean": "bun --cwd apps/web dev:clean",
+    "sync:pyodide": "cd packages/pyodide-assets && bun run sync",
+    "build:web": "bun --cwd apps/web build",
+    "lint:web": "bun --cwd apps/web lint",
+    "dev:desktop": "bun run sync:pyodide && bun --cwd apps/desktop tauri dev",
+    "tauri:icon": "cd apps/desktop && bun run tauri:icon",
+    "build:desktop": "bun run sync:pyodide && bun --cwd apps/desktop tauri build"
+  }
+}

@@ -1,0 +1,24 @@
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  color: #e5e7eb;
+  background: #0b1120;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { width: 100%; height: 100%; margin: 0; }
+button, input, select { font: inherit; }
+
+.desktop-playground { height: 100%; display: flex; flex-direction: column; background: #0b1120; }
+.desktop-header { height: 48px; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: #111827; border-bottom: 1px solid #263244; }
+.desktop-header strong { color: #fff; margin-right: auto; }
+.desktop-header span { color: #9ca3af; font-size: 13px; }
+.desktop-header button, .desktop-header select, .desktop-output > button { border: 1px solid #3b82f6; border-radius: 4px; padding: 5px 12px; color: #fff; background: #2563eb; cursor: pointer; }
+.desktop-header select { background: #1f2937; border-color: #374151; }
+.desktop-workspace { min-height: 0; flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #263244; }
+.desktop-editor, .desktop-output { min-width: 0; min-height: 0; background: #111827; }
+.desktop-editor { display: flex; flex-direction: column; }
+.desktop-editor input { height: 38px; padding: 0 12px; color: #d1d5db; background: #1f2937; border: 0; border-bottom: 1px solid #263244; outline: none; }
+.desktop-output { display: flex; flex-direction: column; padding: 10px; gap: 8px; }
+.desktop-output > button { align-self: flex-start; }
+#desktop-terminal { flex: 1; min-height: 0; padding: 8px; border: 1px solid #263244; }
+@media (max-width: 800px) { .desktop-workspace { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; } }

@@ -1,0 +1,20 @@
+[package]
+name = "pygrounds"
+version = "0.1.0"
+description = "Pygrounds desktop client"
+authors = ["twinsant"]
+edition = "2021"
+
+[lib]
+name = "pygrounds_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]
+default = ["custom-protocol"]
