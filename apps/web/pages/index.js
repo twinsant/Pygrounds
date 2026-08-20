@@ -283,7 +283,7 @@ export default function Home() {
     try {
       // https://pyodide.org/en/stable/usage/quickstart.html
       pyodideRef.current = await new PyodideRuntime({
-        indexURL: "https://cdn.jsdelivr.net/pyodide/v314.0.2/full/",
+        indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.3/full/",
         stdout: stdout,
         stderr: stderr,
         stdin: () => null
@@ -472,7 +472,7 @@ export default function Home() {
         <title>Pygrounds</title>
         <meta name="description" content="Best online Python playgrounds." />
       </Head>
-      <Script src="https://cdn.jsdelivr.net/pyodide/v314.0.2/full/pyodide.js"
+      <Script src="https://cdn.jsdelivr.net/pyodide/v0.29.3/full/pyodide.js"
         onLoad={pyodideLoaded} 
         onError={pyodideLoadError}
       />
