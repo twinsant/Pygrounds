@@ -152,9 +152,9 @@
       ansible.builtin.shell: |
         set -e
         export PATH=/root/.bun/bin:/usr/local/bin:/usr/bin:/bin
-        bun install --frozen-lockfile
+        bun install --frozen-lockfile --linker hoisted
       args:
-        chdir: "{{ app_path }}"
+        chdir: "{{ repo_path }}"
         executable: /bin/bash
       register: bun_install
       changed_when: false
@@ -164,7 +164,7 @@
       ansible.builtin.shell: |
         set -e
         export PATH=/root/.bun/bin:/usr/local/bin:/usr/bin:/bin
-        bun ./node_modules/next/dist/bin/next build
+        bun "{{ repo_path }}/node_modules/next/dist/bin/next" build
       args:
         chdir: "{{ app_path }}"
         executable: /bin/bash
