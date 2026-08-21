@@ -5,6 +5,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import { WebglAddon } from '@xterm/addon-webgl';
 import colors from 'ansi-colors';
+import '@xterm/xterm/css/xterm.css';
 
 function XTerm(props) {
   const inputRef = useRef('');

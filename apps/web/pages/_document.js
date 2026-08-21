@@ -5,7 +5,6 @@ export default function Document() {
       <Html>
         <Head>
             <link rel="icon" href="/favicon.ico" />
-            <link rel="stylesheet" href="/xterm.css" />
         </Head>
         <body>
           <Main />
