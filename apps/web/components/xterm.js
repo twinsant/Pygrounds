@@ -76,7 +76,11 @@ function XTerm(props) {
               }
               });
             term.open(document.getElementById('terminal'));
-            term.loadAddon(new WebglAddon());
+              try {
+                term.loadAddon(new WebglAddon());
+              } catch (error) {
+                console.warn('WebGL renderer unavailable; using the default renderer.', error);
+              }
 
             term.write(`Loading ${colors.bold.yellow("Pygrounds v2.0")} ... \r\n`)
             fitAddon.fit();
