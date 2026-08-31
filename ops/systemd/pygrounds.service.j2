@@ -5,9 +5,9 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory={{ app_path }}
-Environment=PATH=/root/.bun/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PATH=/root/projects/twinsant.com/node-v22.17.1-linux-x64-glibc-217/bin:/root/.bun/bin:/usr/local/bin:/usr/bin:/bin
 Environment=NODE_ENV={{ node_env }}
-ExecStart=/usr/bin/env bun {{ repo_path }}/node_modules/next/dist/bin/next start --hostname {{ listen_host }} --port {{ app_port }}
+ExecStart=/root/projects/twinsant.com/node-v22.17.1-linux-x64-glibc-217/bin/node {{ repo_path }}/node_modules/next/dist/bin/next start --hostname {{ listen_host }} --port {{ app_port }}
 Restart=always
 RestartSec=3
 User=root
