@@ -52,6 +52,17 @@ bun run build:web
 bun --cwd apps/web start
 ```
 
+## Google tag
+
+在线版使用 Google tag（Google Analytics 4）。部署前在构建环境设置 GA4 衡量 ID，格式为 `G-XXXXXXXXXX`：
+
+```bash
+export NEXT_PUBLIC_GOOGLE_TAG_ID=G-XXXXXXXXXX
+bun run build:web
+```
+
+`NEXT_PUBLIC_GOOGLE_TAG_ID` 未设置时不会加载 Google tag。该变量会被编译进前端产物，因此修改后需要重新构建并重启在线版服务。部署完成后可在浏览器开发者工具或 GA4 的实时报告中确认数据；本地开发环境建议不设置此变量。
+
 ## 部署到主机 t
 
 仓库新增了一套 Ansible 部署脚本，默认目标主机就是 `t`。
