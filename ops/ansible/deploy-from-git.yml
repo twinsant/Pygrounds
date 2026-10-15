@@ -11,6 +11,7 @@
     service_name: pygrounds
     app_port: 3001
     install_dependencies: true
+    node_bin_dir: /root/projects/twinsant.com/node-v22.17.1-linux-x64-glibc-217/bin
     healthcheck_url: "http://127.0.0.1:{{ app_port }}/"
 
   tasks:
@@ -148,6 +149,10 @@
       register: bun_runtime
       changed_when: false
 
+    - name: Verify Node runtime
+      ansible.builtin.command: "{{ node_bin_dir }}/node --version"
+      changed_when: false
+
     - name: Install dependencies with bun lockfile
       ansible.builtin.shell: |
         set -e
@@ -163,8 +168,8 @@
     - name: Build Pygrounds app
       ansible.builtin.shell: |
         set -e
-        export PATH=/root/.bun/bin:/usr/local/bin:/usr/bin:/bin
-        bun "{{ repo_path }}/node_modules/next/dist/bin/next" build
+        export PATH={{ node_bin_dir }}:/root/.bun/bin:/usr/local/bin:/usr/bin:/bin
+        node "{{ repo_path }}/node_modules/next/dist/bin/next" build
       args:
         chdir: "{{ app_path }}"
         executable: /bin/bash
