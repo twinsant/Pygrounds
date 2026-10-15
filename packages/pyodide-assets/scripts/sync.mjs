@@ -5,6 +5,7 @@ const version = (await readFile(new URL('VERSION', root), 'utf8')).trim()
 const source = `https://cdn.jsdelivr.net/pyodide/v${version}/full/`
 const files = [
   'pyodide.js',
+  'pyodide.asm.js',
   'pyodide.asm.wasm',
   'pyodide-lock.json',
   'python_stdlib.zip',
