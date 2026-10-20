@@ -1,0 +1,60 @@
+.account {
+  position: relative;
+  flex-shrink: 0;
+  max-width: 65%;
+}
+
+.trigger,
+.trigger:disabled {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.trigger:not(:disabled):hover,
+.trigger:not(:disabled):focus-visible {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.accountLabel {
+  display: block;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.codeInput {
+  text-align: center;
+  letter-spacing: 0.3em;
+  font-size: 24px;
+}
+
+.securityNote {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+  font-size: 12px;
+}
+
+.storageNote {
+  font-size: 12px;
+}
+
+.logoutError {
+  position: absolute;
+  z-index: 1000;
+  top: 40px;
+  right: 0;
+  width: 280px;
+  max-width: calc(100vw - 32px);
+  line-height: 1.5;
+}
+
+@media (max-width: 480px) {
+  .accountLabel {
+    max-width: 130px;
+  }
+}

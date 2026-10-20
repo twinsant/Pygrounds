@@ -11,6 +11,7 @@ import { BrowserFileStorage } from '@pygrounds/file-storage'
 import { PyodideRuntime } from '@pygrounds/python-runtime'
 // https://github.com/suren-atoyan/monaco-react
 import dynamic from "next/dynamic"
+import AccountControl from '../components/AccountControl'
 
 const plainColors = {
   gray: (text) => text,
@@ -478,11 +479,12 @@ export default function Home() {
       />
 
       <Layout className="layout" style={{ minHeight: '100vh' }}>
-        <Header style={{ height: 40, lineHeight: '40px', padding: '0 24px' }}>
+        <Header style={{ height: 40, lineHeight: '40px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
           <div className="logo" />
           <Menu
             theme="dark"
             mode="horizontal"
+            style={{ flex: 1, minWidth: 0 }}
             defaultSelectedKeys={['m1']}
             items={menus}
             onClick={({ key }) => {
@@ -493,6 +495,7 @@ export default function Home() {
               }
             }}
           />
+          <AccountControl />
         </Header>
 
         <Content

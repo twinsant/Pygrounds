@@ -2,6 +2,7 @@ import '../styles/globals.css'
 import Script from 'next/script'
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
+import AuthProvider from '../components/AuthProvider'
 
 const googleTagId = process.env.NEXT_PUBLIC_GOOGLE_TAG_ID
 
@@ -49,7 +50,9 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       <GoogleTag />
-      <Component {...pageProps} />
+      <AuthProvider>
+        <Component {...pageProps} />
+      </AuthProvider>
     </>
   )
 }
