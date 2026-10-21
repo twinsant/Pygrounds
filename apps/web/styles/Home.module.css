@@ -127,3 +127,254 @@
     filter: invert(1);
   }
 } */
+
+.container {
+  height: 100vh;
+  overflow: hidden;
+  background: #0f1115;
+}
+
+.mobileFilesButton {
+  display: none !important;
+}
+
+.topMenu {
+  min-width: 0;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 !important;
+  gap: 1px;
+  background: #303238;
+}
+
+.filePanel {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  background: #18191d;
+}
+
+.panelHeading {
+  display: flex;
+  height: 38px;
+  flex: 0 0 38px;
+  align-items: center;
+  padding: 0 14px;
+  border-bottom: 1px solid #303238;
+  color: #a7a9b0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fileList {
+  min-height: 0;
+  overflow: auto;
+  padding: 8px;
+}
+
+.fileItem {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 4px;
+  padding: 7px 9px;
+  background: transparent;
+  color: #c8c9ce;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+}
+
+.fileItem span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileItem:hover {
+  background: #292b31;
+}
+
+.activeFile {
+  background: #292b31;
+  color: #fff;
+}
+
+.emptyFiles {
+  padding: 10px;
+  color: #858791;
+  font-size: 13px;
+}
+
+.workbench {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1.7fr) minmax(180px, 0.8fr);
+  gap: 1px;
+  background: #303238;
+}
+
+.editorPanel,
+.consolePanel {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  background: #1e1e1e;
+}
+
+.panelToolbar {
+  display: flex;
+  height: 42px;
+  flex: 0 0 42px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px;
+  border-bottom: 1px solid #303238;
+  background: #18191d;
+}
+
+.currentFile {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  color: #c8c9ce;
+  font-size: 13px;
+}
+
+.currentFile button,
+.currentFile input {
+  min-width: 0;
+  border: 0;
+  padding: 4px 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.currentFile button {
+  cursor: text;
+}
+
+.currentFile input {
+  outline: 1px solid #1677ff;
+}
+
+.editorViewport {
+  min-height: 0;
+  flex: 1;
+}
+
+.vimStatus {
+  height: 24px;
+  flex: 0 0 24px;
+  padding: 2px 8px;
+  background: #252526;
+  color: #ccc;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.terminalViewport {
+  min-height: 0;
+  flex: 1;
+  padding: 8px;
+  background: #111827;
+}
+
+.loadingOverlay {
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 70%);
+  inset: 0;
+}
+
+.drawerBackdrop {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .workspace {
+    grid-template-columns: 180px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 540px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .mobileFilesButton {
+    display: inline-flex !important;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    color: #fff !important;
+  }
+
+  .filePanel {
+    position: fixed;
+    z-index: 31;
+    top: 40px;
+    bottom: 48px;
+    left: 0;
+    width: min(280px, 86vw);
+    box-shadow: 10px 0 28px rgb(0 0 0 / 35%);
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 180ms ease, visibility 180ms ease;
+  }
+
+  .drawerOpen .filePanel {
+    transform: translateX(0);
+    visibility: visible;
+  }
+
+  .drawerBackdrop {
+    position: fixed;
+    z-index: 30;
+    display: block;
+    border: 0;
+    padding: 0;
+    background: rgb(0 0 0 / 55%);
+    inset: 40px 0 48px;
+    cursor: pointer;
+  }
+
+  .fileList {
+    display: block;
+    overflow: auto;
+  }
+
+  .fileItem {
+    width: 100%;
+  }
+
+  .topMenu :global(.ant-menu-item:nth-child(2)) {
+    display: none;
+  }
+
+  .workbench {
+    grid-template-rows: minmax(180px, 1.5fr) minmax(140px, 0.8fr);
+  }
+}

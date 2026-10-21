@@ -22,6 +22,7 @@ export default function DesktopPlayground() {
   const [loading, setLoading] = useState(true)
   const [fileName, setFileName] = useState('unamed.py')
   const [files, setFiles] = useState([])
+  const [fileDrawerOpen, setFileDrawerOpen] = useState(false)
 
   const storage = () => {
     if (!storageRef.current) storageRef.current = new BrowserFileStorage()
@@ -164,32 +165,72 @@ export default function DesktopPlayground() {
     }
   }
 
+  const displayedFiles = Array.from(new Set([fileName, ...files]))
+
   return (
     <main className="desktop-playground">
       <header className="desktop-header">
+        <button
+          type="button"
+          className="desktop-files-trigger"
+          aria-label="Open local files"
+          aria-expanded={fileDrawerOpen}
+          aria-controls="desktop-files-panel"
+          onClick={() => setFileDrawerOpen(open => !open)}
+        >
+          Files
+        </button>
         <strong>Pygrounds</strong>
         <span>{loading ? 'Loading Python...' : ready ? 'Python ready' : 'Runtime unavailable'}</span>
-        <button type="button" onClick={saveFile}>Save</button>
-        <select value="" onChange={(event) => openFile(event.target.value)} aria-label="Open file">
-          <option value="">Open file</option>
-          {files.map((file) => <option key={file} value={file}>{file}</option>)}
-        </select>
       </header>
-      <section className="desktop-workspace">
-        <div className="desktop-editor">
-          <input value={fileName} onChange={(event) => setFileName(event.target.value)} aria-label="File name" />
-          <Editor
-            height="calc(100% - 38px)"
-            theme="vs-dark"
-            language="python"
-            defaultValue={storage().getItem(INITIAL_FILE_PATH) ?? "print('hello, world')"}
-            onMount={(editor) => { editorRef.current = editor }}
-            options={{ minimap: { enabled: false }, automaticLayout: true }}
+      <section className={`desktop-workspace ${fileDrawerOpen ? 'drawer-open' : ''}`}>
+        {fileDrawerOpen && (
+          <button
+            type="button"
+            className="desktop-file-backdrop"
+            aria-label="Close local files"
+            onClick={() => setFileDrawerOpen(false)}
           />
-        </div>
-        <div className="desktop-output">
-          <button type="button" disabled={!ready} onClick={() => runCode(editorRef.current?.getValue() ?? '')}>Run</button>
-          <div id="desktop-terminal" />
+        )}
+        <aside id="desktop-files-panel" className="desktop-files" aria-label="Local files">
+          <div className="desktop-panel-title">Local files</div>
+          <div className="desktop-file-list">
+            {displayedFiles.map((file) => (
+              <button
+                type="button"
+                key={file}
+                className={`desktop-file ${file === fileName ? 'active' : ''}`}
+                onClick={() => {
+                  openFile(file)
+                  setFileDrawerOpen(false)
+                }}
+              >
+                <span className="material-symbols-outlined" aria-hidden="true">description</span>
+                {file}
+              </button>
+            ))}
+          </div>
+        </aside>
+        <div className="desktop-workbench">
+          <section className="desktop-editor">
+            <div className="desktop-editor-toolbar">
+              <input value={fileName} onChange={(event) => setFileName(event.target.value)} aria-label="File name" />
+              <button type="button" onClick={saveFile}>Save</button>
+              <button type="button" disabled={!ready} onClick={() => runCode(editorRef.current?.getValue() ?? '')}>Run</button>
+            </div>
+            <Editor
+              height="calc(100% - 42px)"
+              theme="vs-dark"
+              language="python"
+              defaultValue={storage().getItem(INITIAL_FILE_PATH) ?? "print('hello, world')"}
+              onMount={(editor) => { editorRef.current = editor }}
+              options={{ minimap: { enabled: false }, automaticLayout: true }}
+            />
+          </section>
+          <section className="desktop-output">
+            <div className="desktop-panel-title">Console</div>
+            <div id="desktop-terminal" />
+          </section>
         </div>
       </section>
     </main>

@@ -2,9 +2,8 @@ import { useRef, useEffect, useState } from 'react'
 import Head from 'next/head'
 import Script from 'next/script'
 import Link from 'next/link'
-import { Button, Breadcrumb, Layout, Menu, Progress } from 'antd';
-import { PlayCircleOutlined, LoadingOutlined } from '@ant-design/icons';
-import { Col, Row } from 'antd';
+import { Button, Layout, Menu, Progress } from 'antd';
+import { FileOutlined, MenuOutlined, PlayCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 import styles from '../styles/Home.module.css'
 import { PlaygroundShell } from '@pygrounds/app-ui'
 import { BrowserFileStorage } from '@pygrounds/file-storage'
@@ -52,6 +51,7 @@ export default function Home() {
   const [virtualFiles, setVirtualFiles] = useState([]);
   const [currentFileName, setCurrentFileName] = useState('unamed.py');
   const [editingFileName, setEditingFileName] = useState(false);
+  const [fileDrawerOpen, setFileDrawerOpen] = useState(false);
   const progressTimer = useRef(null);
 
   function fileStorage() {
@@ -384,6 +384,9 @@ export default function Home() {
 
   function openVirtualFile(fileName) {
     const filePath = virtualFilePath(fileName);
+    if (filePath === currentFilePathRef.current) {
+      return;
+    }
     const savedCode = fileStorage().getItem(filePath);
     if (savedCode === null) {
       xtermRef.current.write(`\r\nopen: ${fileName}: No such file\r\n`);
@@ -463,6 +466,11 @@ export default function Home() {
     {key: "m1", label: <Link href="https://github.com/twinsant/Pygrounds">Github</Link>},
   ]
 
+  const displayedFiles = Array.from(new Set([
+    currentFilePathRef.current.split('/').pop(),
+    ...virtualFiles,
+  ]))
+
   startTime = new Date();
   startProgressTimer();
 
@@ -478,10 +486,20 @@ export default function Home() {
         onError={pyodideLoadError}
       />
 
-      <Layout className="layout" style={{ minHeight: '100vh' }}>
+      <Layout className="layout" style={{ height: '100vh', minHeight: 0, overflow: 'hidden' }}>
         <Header style={{ height: 40, lineHeight: '40px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Button
+            type="text"
+            icon={<MenuOutlined />}
+            aria-label="Open local files"
+            aria-expanded={fileDrawerOpen}
+            aria-controls="local-files-panel"
+            onClick={() => setFileDrawerOpen(open => !open)}
+            className={styles.mobileFilesButton}
+          />
           <div className="logo" />
           <Menu
+            className={styles.topMenu}
             theme="dark"
             mode="horizontal"
             style={{ flex: 1, minWidth: 0 }}
@@ -498,60 +516,40 @@ export default function Home() {
           <AccountControl />
         </Header>
 
-        <Content
-          style={{
-            padding: '0 50px',
-            height: 'calc(100vh - 98px)',
-            overflow: 'hidden',
-          }}
-        >
-          <Breadcrumb
-            style={{
-              margin: '8px 0',
-            }}
-          >
-            <Breadcrumb.Item>Pygrounds</Breadcrumb.Item>
-            <Breadcrumb.Item>
-              {editingFileName ? (
-                <input
-                  autoFocus
-                  value={currentFileName}
-                  onChange={event => setCurrentFileName(event.target.value)}
-                  onBlur={commitFileName}
-                  onKeyDown={event => {
-                    if (event.key === 'Enter') {
-                      commitFileName();
-                    }
-                    if (event.key === 'Escape') {
-                      setCurrentFileName(currentFilePathRef.current.split('/').pop());
-                      setEditingFileName(false);
-                    }
+        <Content className={`${styles.workspace} ${fileDrawerOpen ? styles.drawerOpen : ''}`} style={{ minHeight: 0 }}>
+          {fileDrawerOpen && (
+            <button
+              type="button"
+              className={styles.drawerBackdrop}
+              aria-label="Close local files"
+              onClick={() => setFileDrawerOpen(false)}
+            />
+          )}
+          <aside id="local-files-panel" className={styles.filePanel} aria-label="Local files">
+            <div className={styles.panelHeading}>Local files</div>
+            <div className={styles.fileList}>
+              {displayedFiles.length > 0 ? displayedFiles.map(fileName => (
+                <button
+                  key={fileName}
+                  type="button"
+                  className={`${styles.fileItem} ${fileName === currentFilePathRef.current.split('/').pop() ? styles.activeFile : ''}`}
+                  onClick={() => {
+                    openVirtualFile(fileName);
+                    setFileDrawerOpen(false);
                   }}
-                  style={{fontSize: 'inherit', border: '1px solid #1677ff', outline: 'none'}}
-                />
-              ) : (
-                <span onClick={() => setEditingFileName(true)} style={{cursor: 'text'}}>
-                  {currentFileName}
-                </span>
+                >
+                  <FileOutlined />
+                  <span>{fileName}</span>
+                </button>
+              )) : (
+                <div className={styles.emptyFiles}>No local files</div>
               )}
-            </Breadcrumb.Item>
-          </Breadcrumb>
-          <div style={{position: 'relative', height: 'calc(100% - 38px)'}}>
+            </div>
+          </aside>
+
+          <main className={styles.workbench}>
             {pyodideLoading && (
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'rgba(0, 0, 0, 0.7)',
-                zIndex: 10,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '8px',
-              }}>
+              <div className={styles.loadingOverlay}>
                 <LoadingOutlined style={{fontSize: 32, color: '#1677ff', marginBottom: 16}} />
                 <div style={{color: '#fff', marginBottom: 16, fontSize: 14}}>
                   Loading Pyodide...
@@ -563,60 +561,70 @@ export default function Home() {
                 />
               </div>
             )}
-            <Row style={{height: '100%'}}>
-              <Col span={12} style={{height: '100%', display: 'flex'}}>
-              <div style={{width: '100%', height: '100%', display: 'flex', flexDirection: 'column'}}>
+            <section className={styles.editorPanel}>
+              <div className={styles.panelToolbar}>
+                <div className={styles.currentFile}>
+                  <FileOutlined />
+                  {editingFileName ? (
+                    <input
+                      autoFocus
+                      value={currentFileName}
+                      onChange={event => setCurrentFileName(event.target.value)}
+                      onBlur={commitFileName}
+                      onKeyDown={event => {
+                        if (event.key === 'Enter') {
+                          commitFileName();
+                        }
+                        if (event.key === 'Escape') {
+                          setCurrentFileName(currentFilePathRef.current.split('/').pop());
+                          setEditingFileName(false);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <button type="button" onClick={() => setEditingFileName(true)}>
+                      {currentFileName}
+                    </button>
+                  )}
+                </div>
+                <Button
+                  type="primary"
+                  icon={<PlayCircleOutlined />}
+                  disabled={pyodideLoading}
+                  onClick={onRun}
+                >
+                  Run
+                </Button>
+              </div>
+              <div className={styles.editorViewport}>
                 <Editor
-                  height="calc(100% - 24px)"
+                  height="100%"
                   theme="vs-dark"
                   defaultLanguage="python"
                   options={{minimap: false}}
                   defaultValue="print('hello, world')"
                   onMount={editorDidMount}
                 />
-                <div
-                  ref={vimStatusRef}
-                  style={{
-                    height: 24,
-                    padding: '2px 8px',
-                    background: '#252526',
-                    color: '#cccccc',
-                    fontFamily: 'monospace',
-                    fontSize: 12,
-                  }}
-                />
               </div>
-              </Col>
-              <Col
-                span={1}
-                style={{
-                  height: '100%',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
-                <Button
-                  type="primary"
-                  icon={<PlayCircleOutlined />}
-                  shape='circle'
-                  disabled={pyodideLoading}
-                  onClick={onRun} />
-              </Col>
-              <Col span={11} style={{height: '100%', display: 'flex'}}>
+              <div ref={vimStatusRef} className={styles.vimStatus} />
+            </section>
+            <section className={styles.consolePanel}>
+              <div className={styles.panelHeading}>Console</div>
+              <div className={styles.terminalViewport}>
                 <XTerm onLoad={xtermLoaded} onSubmit={onTerminalSubmit} onInterrupt={onTerminalInterrupt} onClear={onTerminalClear} onTabComplete={completeTerminalInput}/>
-              </Col>
-            </Row>
-          </div>
+              </div>
+            </section>
+          </main>
         </Content>
         <Footer
           style={{
             textAlign: 'center',
-            padding: '8px 24px',
+            height: 48,
+            padding: '4px 24px',
+            flexShrink: 0,
           }}
         >
-          <p style={{margin: '2px 0'}}><b>Pygrounds</b> ©2026 &#10084;&#65039; by <a href="https://twitter.com/twinsant"><u>twinsant</u></a></p>
-          <p style={{color: 'gray', margin: '2px 0'}}>Powered with Pyodide & Monaco Editor</p>
+          <p style={{margin: 0}}><b>Pygrounds</b> ©2026 &#10084;&#65039; by <a href="https://twitter.com/twinsant"><u>twinsant</u></a> · Powered with Pyodide & Monaco Editor</p>
         </Footer>
       </Layout>
       </div>
