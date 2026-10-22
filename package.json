@@ -14,6 +14,7 @@
     "test:auth": "bun test apps/web/tests/auth.test.js",
     "test:agent": "bun test apps/web/tests/agent.test.js",
     "test:theme": "bun test apps/web/tests/theme.test.js",
+    "test:i18n": "bun test apps/web/tests/i18n.test.js",
     "dev:desktop": "bun run sync:pyodide && bun --cwd apps/desktop tauri dev",
     "tauri:icon": "cd apps/desktop && bun run tauri:icon",
     "build:desktop": "bun run sync:pyodide && bun --cwd apps/desktop tauri build"

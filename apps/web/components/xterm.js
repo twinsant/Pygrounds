@@ -8,6 +8,7 @@ import colors from 'ansi-colors';
 import '@xterm/xterm/css/xterm.css';
 import { useTheme } from './ThemeProvider';
 import { getTerminalTheme } from '../lib/theme';
+import { useLanguage } from './LanguageProvider';
 
 function XTerm(props) {
   const inputRef = useRef('');
@@ -15,6 +16,7 @@ function XTerm(props) {
   const containerRef = useRef(null);
   const callbacksRef = useRef(props);
   const { mode } = useTheme();
+  const { language, t } = useLanguage();
   const modeRef = useRef(mode);
 
   useEffect(() => {
@@ -25,6 +27,10 @@ function XTerm(props) {
     modeRef.current = mode;
     if (terminalRef.current) terminalRef.current.options.theme = getTerminalTheme(mode);
   }, [mode]);
+
+  useEffect(() => {
+    terminalRef.current?.textarea?.setAttribute('aria-label', t('terminal.input'));
+  }, [language, t]);
 
     useEffect(() => {
             const term = new Terminal({
@@ -92,13 +98,14 @@ function XTerm(props) {
               }
               });
             term.open(containerRef.current);
+            term.textarea?.setAttribute('aria-label', t('terminal.input'));
               try {
                 term.loadAddon(new WebglAddon());
               } catch (error) {
                 console.warn('WebGL renderer unavailable; using the default renderer.', error);
               }
 
-            term.write(`Loading ${colors.bold("Pygrounds v2.0")} ... \r\n`)
+            term.write(`${t('terminal.loading', { name: colors.bold('Pygrounds v2.0') })}\r\n`)
             fitAddon.fit();
 
             callbacksRef.current.onLoad(term);

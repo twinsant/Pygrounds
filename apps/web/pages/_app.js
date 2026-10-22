@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import AuthProvider from '../components/AuthProvider'
 import ThemeProvider from '../components/ThemeProvider'
+import LanguageProvider from '../components/LanguageProvider'
 
 const googleTagId = process.env.NEXT_PUBLIC_GOOGLE_TAG_ID
 
@@ -51,11 +52,13 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       <GoogleTag />
-      <ThemeProvider>
-        <AuthProvider>
-          <Component {...pageProps} />
-        </AuthProvider>
-      </ThemeProvider>
+      <LanguageProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <Component {...pageProps} />
+          </AuthProvider>
+        </ThemeProvider>
+      </LanguageProvider>
     </>
   )
 }

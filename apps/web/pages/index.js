@@ -17,6 +17,9 @@ import { assertProposalTarget } from '../lib/agent'
 import { useTheme } from '../components/ThemeProvider'
 import ThemeToggle from '../components/ThemeToggle'
 import { getMonacoTheme } from '../lib/theme'
+import { useLanguage } from '../components/LanguageProvider'
+import LanguageSelect from '../components/LanguageSelect'
+import { LocalizedError } from '../lib/i18n'
 
 const plainColors = {
   gray: (text) => text,
@@ -46,6 +49,7 @@ function beforeEditorMount(monaco) {
 
 export default function Home() {
   const { mode } = useTheme();
+  const { t } = useLanguage();
   const { user, loading: authLoading, error: authError } = useAuth();
   const [agentOpen, setAgentOpen] = useState(true);
   const editorRef = useRef(null);
@@ -59,8 +63,7 @@ export default function Home() {
   const replBufferRef = useRef([]);
   const inputResolversRef = useRef([]);
   const colorsRef = useRef(plainColors);
-  var startTime = useRef(null);
-  var stopTime = useRef(null);
+  const startTime = useRef(null);
   const [pyodideLoading, setPyodideLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
   const [virtualFiles, setVirtualFiles] = useState([]);
@@ -96,6 +99,9 @@ export default function Home() {
 
   useEffect(() => {
     setVirtualFiles(listVirtualHomeFiles());
+    startTime.current = Date.now();
+    startProgressTimer();
+    return stopProgressTimer;
   }, []);
 
   function stdout(msg) {
@@ -162,7 +168,7 @@ export default function Home() {
       } else if (command === 'ls' || command.startsWith('ls ')) {
         const requestedPath = command.slice(2).trim();
         if (requestedPath && virtualFilePath(requestedPath) !== HOME_DIRECTORY) {
-          xtermRef.current.write(`ls: ${requestedPath}: No such directory\r\n`);
+          xtermRef.current.write(`${t('terminal.noDirectory', { path: requestedPath })}\r\n`);
         } else {
           const files = listVirtualHomeFiles();
           if (files.length > 0) {
@@ -173,7 +179,7 @@ export default function Home() {
       } else if (command === 'mv' || command.startsWith('mv ')) {
         const renameParts = command.split(/\s+/).slice(1);
         if (renameParts.length !== 2) {
-          xtermRef.current.write('Usage: mv <old-name> <new-name>\r\n');
+          xtermRef.current.write(`${t('terminal.mvUsage')}\r\n`);
           writeTerminalPrompt();
         } else {
           renameVirtualFile(renameParts[0], renameParts[1]);
@@ -181,26 +187,16 @@ export default function Home() {
       } else if (command === 'open' || command.startsWith('open ')) {
         const fileName = command.slice(4).trim();
         if (!fileName) {
-          xtermRef.current.write('Usage: open <file>\r\n');
+          xtermRef.current.write(`${t('terminal.openUsage')}\r\n`);
           writeTerminalPrompt();
         } else {
           openVirtualFile(fileName);
         }
       } else if (command === 'help' || command === '?') {
-        xtermRef.current.write(
-          'Available commands:\r\n' +
-          '  help, ?       Show this help message\r\n' +
-          '  python         Enter the Python REPL\r\n' +
-          '  python3        Enter the Python REPL\r\n' +
-          '  clear          Clear the terminal\r\n' +
-          '  pwd            Show the current home directory\r\n' +
-          '  ls             List files in the home directory\r\n' +
-          '  mv <old> <new> Rename a file in the home directory\r\n' +
-          '  open <file>    Open a file from the home directory\r\n'
-        );
+        xtermRef.current.write(t('terminal.help'));
         writeTerminalPrompt();
       } else if (command) {
-        xtermRef.current.write(`${command}: command not found\r\n`);
+        xtermRef.current.write(`${t('terminal.unknownCommand', { command })}\r\n`);
         writeTerminalPrompt();
       } else {
         writeTerminalPrompt();
@@ -221,7 +217,7 @@ export default function Home() {
         const codeToRun = replBufferRef.current.join('\n');
         replBufferRef.current = [];
         if (!pyodideRef.current) {
-          xtermRef.current.write('Pyodide is not ready yet, please wait...\r\n');
+          xtermRef.current.write(`${t('terminal.notReady')}\r\n`);
           writeTerminalPrompt(true);
           return;
         }
@@ -247,7 +243,7 @@ export default function Home() {
     }
 
     if (!pyodideRef.current) {
-      xtermRef.current.write('Pyodide is not ready yet, please wait...\r\n');
+      xtermRef.current.write(`${t('terminal.notReady')}\r\n`);
       writeTerminalPrompt();
       return;
     }
@@ -290,8 +286,7 @@ export default function Home() {
   }
 
   async function pyodideLoaded() {
-    stopTime = new Date();
-    const elasped = stopTime - startTime;
+    const elasped = Date.now() - startTime.current;
 
     console.log(`Pyodide ready: ${ elasped }ms`)
     setLoadProgress(50);
@@ -312,7 +307,7 @@ export default function Home() {
       `);
       stopProgressTimer();
       setLoadProgress(100);
-      var pymsg = `\r\nPyodide loaded in ${ elasped }ms.`;
+      var pymsg = `\r\n${t('terminal.loaded', { ms: elasped })}`;
       xtermRef.current.write(colorsRef.current.gray(pymsg));
       pymsg = `\r\nPython ${msg}\r\n\r\n`;
       xtermRef.current.write(colorsRef.current.bold.yellow(pymsg));
@@ -326,17 +321,16 @@ export default function Home() {
 
   async function onRun() {
     if (!pyodideRef.current) {
-      xtermRef.current.write(colorsRef.current.red("\r\nPyodide is not ready yet, please wait...\r\n"));
+      xtermRef.current.write(colorsRef.current.red(`\r\n${t('terminal.notReady')}\r\n`));
       return;
     }
 
     const code = editorRef.current.getValue();
-    startTime = new Date();
-    xtermRef.current.write(colorsRef.current.gray("\r\nLoading imports..."))
+    const runStarted = Date.now();
+    xtermRef.current.write(colorsRef.current.gray(`\r\n${t('terminal.imports')}`))
     await pyodideRef.current.loadPackagesFromImports(code);
-    stopTime = new Date()
-    const elasped = stopTime - startTime;
-    xtermRef.current.write(colorsRef.current.gray(`\r\nLoading imports done: ${ elasped }ms.\r\n`))
+    const elasped = Date.now() - runStarted;
+    xtermRef.current.write(colorsRef.current.gray(`\r\n${t('terminal.importsDone', { ms: elasped })}\r\n`))
     try {
       await pyodideRef.current.runPythonAsync(preparePythonCode(code));
     } catch (e) {
@@ -366,7 +360,7 @@ export default function Home() {
   }
 
   function getAgentSnapshot() {
-    if (!editorRef.current) throw new Error('The editor is not ready yet.');
+    if (!editorRef.current) throw new LocalizedError('agent.editorNotReady');
     return { path: currentFilePathRef.current, code: editorRef.current.getValue() };
   }
 
@@ -388,7 +382,7 @@ export default function Home() {
     const filePath = currentFilePathRef.current;
     fileStorage().setItem(filePath, code);
     setVirtualFiles(listVirtualHomeFiles());
-    xtermRef.current?.write(`\r\nSaved ${filePath}\r\n`);
+    xtermRef.current?.write(`\r\n${t('terminal.saved', { path: filePath })}\r\n`);
     if (xtermRef.current) {
       writeTerminalPrompt(true);
     }
@@ -418,7 +412,7 @@ export default function Home() {
     }
     const savedCode = fileStorage().getItem(filePath);
     if (savedCode === null) {
-      xtermRef.current.write(`\r\nopen: ${fileName}: No such file\r\n`);
+      xtermRef.current.write(`\r\n${t('terminal.noFile', { command: 'open', path: fileName })}\r\n`);
       writeTerminalPrompt(true);
       return;
     }
@@ -426,7 +420,7 @@ export default function Home() {
     editorRef.current?.setValue(savedCode);
     currentFilePathRef.current = filePath;
     setCurrentFileName(filePath.split('/').pop());
-    xtermRef.current.write(`\r\nOpened ${filePath}\r\n`);
+    xtermRef.current.write(`\r\n${t('terminal.opened', { path: filePath })}\r\n`);
     writeTerminalPrompt(true);
   }
 
@@ -435,9 +429,9 @@ export default function Home() {
     const targetPath = virtualFilePath(targetName);
     const savedCode = fileStorage().getItem(sourcePath);
     if (savedCode === null) {
-      xtermRef.current.write(`\r\nmv: ${sourceName}: No such file\r\n`);
+      xtermRef.current.write(`\r\n${t('terminal.noFile', { command: 'mv', path: sourceName })}\r\n`);
     } else if (fileStorage().getItem(targetPath) !== null) {
-      xtermRef.current.write(`\r\nmv: ${targetName}: File exists\r\n`);
+      xtermRef.current.write(`\r\n${t('terminal.fileExists', { path: targetName })}\r\n`);
     } else {
       fileStorage().setItem(targetPath, savedCode);
       fileStorage().removeItem(sourcePath);
@@ -446,7 +440,7 @@ export default function Home() {
         setCurrentFileName(targetPath.split('/').pop());
       }
       setVirtualFiles(listVirtualHomeFiles());
-      xtermRef.current.write(`\r\nRenamed ${sourcePath} to ${targetPath}\r\n`);
+      xtermRef.current.write(`\r\n${t('terminal.renamed', { source: sourcePath, target: targetPath })}\r\n`);
     }
     writeTerminalPrompt(true);
   }
@@ -480,15 +474,15 @@ export default function Home() {
   const menus = [
     {
       key: "file",
-      label: "File",
+      label: t('home.file'),
       children: [
-        {key: "save", label: "Save"},
+        {key: "save", label: t('home.save')},
         {
           key: "open",
-          label: "Open",
+          label: t('home.open'),
           children: virtualFiles.length > 0
             ? virtualFiles.map(fileName => ({key: `open:${fileName}`, label: fileName}))
-            : [{key: 'open-empty', label: 'No files', disabled: true}],
+            : [{key: 'open-empty', label: t('home.noFiles'), disabled: true}],
         },
       ],
     },
@@ -500,15 +494,12 @@ export default function Home() {
     ...virtualFiles,
   ]))
 
-  startTime = new Date();
-  startProgressTimer();
-
   return (
     <PlaygroundShell>
       <div className={styles.container}>
       <Head>
         <title>Pygrounds</title>
-        <meta name="description" content="Best online Python playgrounds." />
+        <meta name="description" content={t('home.description')} />
       </Head>
       <Script src="/pyodide/pyodide.js"
         onLoad={pyodideLoaded} 
@@ -520,7 +511,7 @@ export default function Home() {
           <Button
             type="text"
             icon={<MenuOutlined />}
-            aria-label="Open local files"
+            aria-label={t('home.openFiles')}
             aria-expanded={fileDrawerOpen}
             aria-controls="local-files-panel"
             onClick={() => { setFileDrawerOpen(open => !open); setAgentOpen(false); }}
@@ -542,9 +533,10 @@ export default function Home() {
           />
           <Button type="text" aria-controls="agent-panel" aria-expanded={agentOpen}
             onClick={() => { setAgentOpen(open => !open); setFileDrawerOpen(false); }}>
-            Agent
+            {t('agent.title')}
           </Button>
           <ThemeToggle />
+          <LanguageSelect />
           <AccountControl />
         </Header>
 
@@ -553,12 +545,12 @@ export default function Home() {
             <button
               type="button"
               className={styles.drawerBackdrop}
-              aria-label="Close local files"
+              aria-label={t('home.closeFiles')}
               onClick={() => setFileDrawerOpen(false)}
             />
           )}
-          <aside id="local-files-panel" className={styles.filePanel} aria-label="Local files">
-            <div className={styles.panelHeading}>Local files</div>
+          <aside id="local-files-panel" className={styles.filePanel} aria-label={t('home.localFiles')}>
+            <div className={styles.panelHeading}>{t('home.localFiles')}</div>
             <div className={styles.fileList}>
               {displayedFiles.length > 0 ? displayedFiles.map(fileName => (
                 <button
@@ -574,7 +566,7 @@ export default function Home() {
                   <span>{fileName}</span>
                 </button>
               )) : (
-                <div className={styles.emptyFiles}>No local files</div>
+                <div className={styles.emptyFiles}>{t('home.noLocalFiles')}</div>
               )}
             </div>
           </aside>
@@ -584,7 +576,7 @@ export default function Home() {
               <div className={styles.loadingOverlay}>
                 <LoadingOutlined className={styles.loadingIcon} />
                 <div className={styles.loadingLabel}>
-                  Loading Pyodide...
+                  {t('home.loading')}
                 </div>
                 <Progress
                   percent={Math.round(loadProgress)}
@@ -600,6 +592,7 @@ export default function Home() {
                   {editingFileName ? (
                     <input
                       autoFocus
+                      aria-label={t('home.rename')}
                       value={currentFileName}
                       onChange={event => setCurrentFileName(event.target.value)}
                       onBlur={commitFileName}
@@ -614,7 +607,7 @@ export default function Home() {
                       }}
                     />
                   ) : (
-                    <button type="button" onClick={() => setEditingFileName(true)}>
+                    <button type="button" title={t('home.rename')} onClick={() => setEditingFileName(true)}>
                       {currentFileName}
                     </button>
                   )}
@@ -625,7 +618,7 @@ export default function Home() {
                   disabled={pyodideLoading}
                   onClick={onRun}
                 >
-                  Run
+                  {t('home.run')}
                 </Button>
               </div>
               <div className={styles.editorViewport}>
@@ -634,7 +627,8 @@ export default function Home() {
                   theme={`pygrounds-${mode}`}
                   beforeMount={beforeEditorMount}
                   defaultLanguage="python"
-                  options={{minimap: false}}
+                  loading={t('home.editor')}
+                  options={{minimap: false, ariaLabel: t('home.editor')}}
                   defaultValue="print('hello, world')"
                   onMount={editorDidMount}
                 />
@@ -642,7 +636,7 @@ export default function Home() {
               <div ref={vimStatusRef} className={styles.vimStatus} />
             </section>
             <section className={styles.consolePanel}>
-              <div className={styles.panelHeading}>Console</div>
+              <div className={styles.panelHeading}>{t('home.console')}</div>
               <div className={styles.terminalViewport}>
                 <XTerm onLoad={xtermLoaded} onSubmit={onTerminalSubmit} onInterrupt={onTerminalInterrupt} onClear={onTerminalClear} onTabComplete={completeTerminalInput}/>
               </div>
@@ -652,7 +646,7 @@ export default function Home() {
             getSnapshot={getAgentSnapshot} applyProposal={applyAgentProposal} />
         </Content>
         <Footer className={styles.footer}>
-          <p style={{margin: 0}}><b>Pygrounds</b> ©2026 &#10084;&#65039; by <a href="https://twitter.com/twinsant"><u>twinsant</u></a> · Powered with Pyodide & Monaco Editor</p>
+          <p style={{margin: 0}}><b>Pygrounds</b> ©2026 &#10084;&#65039; {t('home.by')} <a href="https://twitter.com/twinsant"><u>twinsant</u></a> · {t('home.poweredBy')}</p>
         </Footer>
       </Layout>
       </div>

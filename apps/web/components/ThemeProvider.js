@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { Alert, ConfigProvider, theme as antdTheme } from 'antd'
 import { palettes, resolveTheme, THEME_STORAGE_KEY, UI_FONT } from '../lib/theme'
+import { useLanguage } from './LanguageProvider'
 
 const ThemeContext = createContext(null)
 
@@ -11,6 +12,7 @@ export function useTheme() {
 }
 
 export default function ThemeProvider({ children }) {
+  const { t } = useLanguage()
   const [mode, setMode] = useState('dark')
   const [error, setError] = useState('')
   const preference = useRef(null)
@@ -21,7 +23,7 @@ export default function ThemeProvider({ children }) {
       preference.current = localStorage.getItem(THEME_STORAGE_KEY)
     } catch (err) {
       console.warn('Theme preference could not be read.', err)
-      setError('Your browser could not read the saved theme. Theme changes will work for this visit.')
+      setError('theme.readError')
     }
     function apply(next) {
       const resolved = resolveTheme(next, system.matches)
@@ -56,7 +58,7 @@ export default function ThemeProvider({ children }) {
       setError('')
     } catch (err) {
       console.warn('Theme preference could not be saved.', err)
-      setError('Your browser could not save the theme. It will reset on your next visit.')
+      setError('theme.saveError')
     }
   }
 
@@ -102,7 +104,7 @@ export default function ThemeProvider({ children }) {
           Input: { colorBgContainer: p.canvas, activeBg: p.canvas, hoverBg: p.canvas },
         },
       }}>
-        {error && <Alert className="theme-notice" type="warning" title={error} role="status"
+        {error && <Alert className="theme-notice" type="warning" title={t(error)} role="status"
           closable onClose={() => setError('')} />}
         {children}
       </ConfigProvider>

@@ -35,7 +35,7 @@ export default function AuthProvider({ children }) {
       .catch(err => {
         if (controller.signal.aborted) return
         if (err instanceof AuthError && err.status === 401) setUser(null)
-        else setError(err instanceof Error ? err.message : 'Unable to check your account')
+        else setError(err)
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false)

@@ -1,9 +1,10 @@
 import { AuthError } from './auth'
+import { LocalizedError, translate } from './i18n'
 
 export const MAX_AGENT_CODE = 64_000
 
 function invalidEvent() {
-  throw new Error('Invalid Agent service event. Please try again.')
+  throw new LocalizedError('agent.invalidEvent')
 }
 
 export function parseAgentEvent(frame) {
@@ -56,15 +57,19 @@ export async function runAgent(body, signal, onEvent) {
     signal,
   })
   if (!response.ok) {
-    let detail = `Agent service returned HTTP ${response.status}. Please try again.`
+    let key = 'agent.http'
+    const values = { status: response.status }
     if (response.headers.get('content-type')?.includes('application/json')) {
       const data = await response.json()
-      if (typeof data?.detail === 'string') detail = data.detail
+      if (typeof data?.detail === 'string') {
+        key = 'agent.remoteError'
+        values.detail = data.detail
+      }
     }
-    throw new AuthError(detail, response.status)
+    throw new AuthError(translate('en', key, values), response.status, key, values)
   }
   if (!response.body || !response.headers.get('content-type')?.includes('text/event-stream')) {
-    throw new Error('Invalid Agent service response. Please try again.')
+    throw new LocalizedError('agent.invalidResponse')
   }
   const reader = response.body.getReader()
   const decoder = new TextDecoder()
@@ -74,8 +79,8 @@ export async function runAgent(body, signal, onEvent) {
   const consume = (frame) => {
     const event = parseAgentEvent(frame)
     if (!event) return
-    if (completed) throw new Error('Agent sent events after completing its response.')
-    if (event.type === 'error') throw new Error(event.detail)
+    if (completed) throw new LocalizedError('agent.afterComplete')
+    if (event.type === 'error') throw new LocalizedError('agent.remoteError', { detail: event.detail })
     if (event.type === 'reply') {
       completed = true
       reply = event.reply
@@ -89,7 +94,7 @@ export async function runAgent(body, signal, onEvent) {
       buffer += done ? decoder.decode() : decoder.decode(value, { stream: true })
       // Normalize after buffering so CRLF delimiters split across chunks remain intact.
       buffer = buffer.replace(/\r\n/g, '\n')
-      if (buffer.length > 300_000) throw new Error('Agent event exceeded the size limit.')
+      if (buffer.length > 300_000) throw new LocalizedError('agent.eventLimit')
       let index
       while ((index = buffer.indexOf('\n\n')) !== -1) {
         consume(buffer.slice(0, index))
@@ -98,7 +103,7 @@ export async function runAgent(body, signal, onEvent) {
       if (done) break
     }
     if (buffer.trim()) consume(buffer)
-    if (!completed) throw new Error('Agent connection ended before a reply was received.')
+    if (!completed) throw new LocalizedError('agent.disconnected')
     return reply
   } finally {
     try {
@@ -111,6 +116,6 @@ export async function runAgent(body, signal, onEvent) {
 
 export function assertProposalTarget(snapshot, current, proposal) {
   if (proposal.path !== snapshot.path || current.path !== snapshot.path || current.code !== snapshot.code) {
-    throw new Error('The editor has changed since this request. Ask the Agent again before applying.')
+    throw new LocalizedError('agent.changed')
   }
 }

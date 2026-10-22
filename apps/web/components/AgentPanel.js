@@ -6,8 +6,11 @@ import AuthDialog from './AuthDialog'
 import { AuthError } from '../lib/auth'
 import { MAX_AGENT_CODE, runAgent } from '../lib/agent'
 import styles from '../styles/Agent.module.css'
+import { useLanguage } from './LanguageProvider'
+import { errorMessage, LocalizedError } from '../lib/i18n'
 
 export default function AgentPanel({ open, onClose, getSnapshot, applyProposal }) {
+  const { t } = useLanguage()
   const { user, loading, error: authError, refresh, authenticate } = useAuth()
   const [loginOpen, setLoginOpen] = useState(false)
   const [prompt, setPrompt] = useState('')
@@ -48,9 +51,9 @@ export default function AgentPanel({ open, onClose, getSnapshot, applyProposal }
     let snapshot
     try {
       snapshot = getSnapshot()
-      if (snapshot.code.length > MAX_AGENT_CODE) throw new Error('Current file exceeds the Agent limit of 64,000 characters.')
+      if (snapshot.code.length > MAX_AGENT_CODE) throw new LocalizedError('agent.codeLimit')
     } catch (err) {
-      setError(err.message)
+      setError(err)
       return
     }
     if (!session.current) session.current = crypto.randomUUID()
@@ -86,7 +89,7 @@ export default function AgentPanel({ open, onClose, getSnapshot, applyProposal }
     } catch (err) {
       if (request.current !== controller) return
       if (err instanceof AuthError && err.status === 401) authenticate(null)
-      else setError(err.name === 'AbortError' ? 'Agent request stopped. No changes were applied.' : err.message)
+      else setError(err.name === 'AbortError' ? new LocalizedError('agent.cancelled') : err)
       patch(item => ({
         ...item, failed: true,
         steps: item.steps.map(step => step.state === 'running' ? { ...step, state: 'stopped' } : step),
@@ -109,51 +112,51 @@ export default function AgentPanel({ open, onClose, getSnapshot, applyProposal }
       } : item))
       setError('')
     } catch (err) {
-      setError(err.message)
+      setError(err)
     }
   }
 
   return (
-    <aside id="agent-panel" className={styles.panel} hidden={!open} aria-label="Agent">
+    <aside id="agent-panel" className={styles.panel} hidden={!open} aria-label={t('agent.title')}>
       <div className={styles.heading}>
-        <strong>Agent</strong>
+        <strong>{t('agent.title')}</strong>
         <Space>
-          {enabled && <Button size="small" disabled={busy} onClick={newChat}>New chat</Button>}
-          <Button type="text" icon={<CloseOutlined />} aria-label="Close Agent" onClick={onClose} />
+          {enabled && <Button size="small" disabled={busy} onClick={newChat}>{t('agent.newChat')}</Button>}
+          <Button type="text" icon={<CloseOutlined />} aria-label={t('agent.close')} onClick={onClose} />
         </Space>
       </div>
       {!enabled ? (
         <div className={styles.gate}>
-          {loading ? <Spin aria-label="Checking account" /> : authError ? (
-            <Alert type="error" title={authError} action={<Button onClick={refresh}>Retry</Button>} />
+          {loading ? <Spin aria-label={t('agent.checking')} /> : authError ? (
+            <Alert type="error" title={errorMessage(authError, t, 'auth.unableCheck')} action={<Button onClick={refresh}>{t('agent.retry')}</Button>} />
           ) : (
             <>
-              <p>Sign in to use the coding Agent.</p>
-              <p>Your editor and local Python runtime remain available without an account.</p>
-              <Button type="primary" onClick={() => setLoginOpen(true)}>Sign in / Register</Button>
+              <p>{t('agent.signIn')}</p>
+              <p>{t('agent.guest')}</p>
+              <Button type="primary" onClick={() => setLoginOpen(true)}>{t('auth.signIn')}</Button>
             </>
           )}
         </div>
       ) : (
         <>
-          <div className={styles.feed} ref={feed} role="log" aria-label="Agent conversation" aria-live="polite">
-            {!messages.length && <p className={styles.notice}>Ask about your Python code. Sending shares the current file with the server and Anthropic. Other local files are not sent. Changes require your approval.</p>}
+          <div className={styles.feed} ref={feed} role="log" aria-label={t('agent.conversation')} aria-live="polite">
+            {!messages.length && <p className={styles.notice}>{t('agent.notice')}</p>}
             {messages.map(message => (
               <article key={message.id} className={styles.message} data-role={message.role}>
-                <strong>{message.role === 'user' ? 'You' : 'Agent'}</strong>
+                <strong>{t(message.role === 'user' ? 'agent.you' : 'agent.title')}</strong>
                 {message.steps?.map(step => (
                   <div key={step.id} className={styles.step}>
                     <Tag color={step.state === 'error' ? 'error' : step.state === 'done' ? 'success' : 'processing'}>
-                      {step.name} · {step.state}
+                      {t(`agent.${step.name}`)} · {t(`agent.${step.state}`)}
                     </Tag>
                     {step.preview && <p>{step.preview}</p>}
                     {step.proposal && (
                       <details>
-                        <summary>Review replacement for {step.proposal.path}</summary>
+                        <summary>{t('agent.review', { path: step.proposal.path })}</summary>
                         <pre className={styles.code}>{step.proposal.code}</pre>
                         <Button size="small" disabled={busy || step.applied || message.failed}
                           onClick={() => apply(message, step)}>
-                          {step.applied ? 'Applied to editor' : 'Apply to editor'}
+                          {t(step.applied ? 'agent.applied' : 'agent.apply')}
                         </Button>
                       </details>
                     )}
@@ -161,21 +164,21 @@ export default function AgentPanel({ open, onClose, getSnapshot, applyProposal }
                 ))}
                 {message.content && <div className={styles.text}>{message.content}</div>}
                 {message.role === 'agent' && !message.content && !message.failed && <Spin size="small" />}
-                {message.failed && <p>Request did not complete.</p>}
+                {message.failed && <p>{t('agent.incomplete')}</p>}
               </article>
             ))}
           </div>
-          {error && <Alert type="error" title={error} role="alert" />}
+          {error && <Alert type="error" title={errorMessage(error, t)} role="alert" />}
           <form className={styles.composer} onSubmit={submit}>
-            <Input.TextArea aria-label="Message Agent" value={prompt} maxLength={8000}
+            <Input.TextArea aria-label={t('agent.message')} value={prompt} maxLength={8000}
               onChange={event => setPrompt(event.target.value)} autoSize={{ minRows: 3, maxRows: 8 }}
-              placeholder="Explain, debug, or improve the current file..." />
+              placeholder={t('agent.placeholder')} />
             <Space className={styles.actions}>
-              {busy && <Button onClick={stop}>Stop</Button>}
+              {busy && <Button onClick={stop}>{t('agent.stop')}</Button>}
               <Button type="primary" htmlType="submit" icon={<SendOutlined />}
-                disabled={busy || !prompt.trim()}>Send</Button>
+                disabled={busy || !prompt.trim()}>{t('agent.send')}</Button>
             </Space>
-            <small>Apply only edits the buffer. Save and Run remain manual.</small>
+            <small>{t('agent.manual')}</small>
           </form>
         </>
       )}

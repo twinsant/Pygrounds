@@ -4,8 +4,11 @@ import { LockOutlined } from '@ant-design/icons'
 import { authRequest, maskEmail } from '../lib/auth'
 import { useAuth } from './AuthProvider'
 import styles from '../styles/Auth.module.css'
+import { useLanguage } from './LanguageProvider'
+import { errorMessage } from '../lib/i18n'
 
 export default function AuthDialog({ open, onClose }) {
+  const { t } = useLanguage()
   const { authenticate } = useAuth()
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
@@ -63,7 +66,7 @@ export default function AuthDialog({ open, onClose }) {
         onClose()
       }
     } catch (err) {
-      if (!controller.signal.aborted) setError(err instanceof Error ? err.message : 'Unable to sign in')
+      if (!controller.signal.aborted) setError(err)
     } finally {
       if (!controller.signal.aborted) setBusy(false)
     }
@@ -72,54 +75,52 @@ export default function AuthDialog({ open, onClose }) {
   return (
     <Modal open={open} onCancel={close} footer={null} afterClose={reset}
       afterOpenChange={visible => { if (visible) emailInput.current?.focus() }}
-      title={<Space><LockOutlined aria-hidden="true" />Pygrounds account</Space>} width={440} centered>
+      title={<Space><LockOutlined aria-hidden="true" />{t('auth.account')}</Space>} width={440} centered>
       <Typography.Title level={4}>
-        {challenge ? 'Enter your authenticator code' : 'Sign in or create an account'}
+        {t(challenge ? 'auth.enterCode' : 'auth.welcome')}
       </Typography.Title>
       <Typography.Paragraph type="secondary">
         {challenge
           ? challenge.step === 'enroll'
-            ? `Setup instructions were sent to ${maskEmail(challenge.email)}. Scan the emailed QR code with Google Authenticator, then enter its 6-digit code. Check your spam folder too.`
-            : `Open the twinsant.com entry for ${maskEmail(challenge.email)} in your authenticator and enter its current code.`
-          : 'Use your twinsant.com account and authenticator. New accounts receive a setup email. You can keep coding without signing in.'}
+            ? t('auth.enrollInstructions', { email: maskEmail(challenge.email) })
+            : t('auth.loginInstructions', { email: maskEmail(challenge.email) })
+          : t('auth.introduction')}
       </Typography.Paragraph>
       <Form layout="vertical" onFinish={submit} requiredMark={false}>
         {challenge ? (
-          <Form.Item label="6-digit dynamic code" htmlFor="pygrounds-auth-code">
+          <Form.Item label={t('auth.code')} htmlFor="pygrounds-auth-code">
             <Input id="pygrounds-auth-code" ref={codeInput} value={code} disabled={busy || expired}
               inputMode="numeric" autoComplete="one-time-code" maxLength={6} required pattern="[0-9]{6}"
               onChange={event => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
               size="large" className={styles.codeInput} />
           </Form.Item>
         ) : (
-          <Form.Item label="Email address" htmlFor="pygrounds-auth-email">
+          <Form.Item label={t('auth.email')} htmlFor="pygrounds-auth-email">
             <Input id="pygrounds-auth-email" ref={emailInput} type="email" value={email}
               onChange={event => setEmail(event.target.value)} autoComplete="email"
               required maxLength={254} disabled={busy} placeholder="you@example.com" size="large" />
           </Form.Item>
         )}
         <Space orientation="vertical" size="middle" className={styles.fullWidth}>
-          {error && <Alert type="error" showIcon title={error} role="alert" />}
-          {expired && <Alert type="warning" showIcon title="This request has expired. Restart to sign in." role="alert" />}
+          {error && <Alert type="error" showIcon title={errorMessage(error, t, 'auth.unableSignIn')} role="alert" />}
+          {expired && <Alert type="warning" showIcon title={t('auth.expired')} role="alert" />}
           <Button type="primary" htmlType="submit" size="large" loading={busy} block
-            aria-label={challenge ? 'Verify and sign in' : 'Continue with email'}
+            aria-label={t(challenge ? 'auth.verify' : 'auth.continue')}
             disabled={expired || (!challenge ? !email.trim() : code.length !== 6)}>
-            {challenge ? 'Verify and sign in' : 'Continue with email'}
+            {t(challenge ? 'auth.verify' : 'auth.continue')}
           </Button>
           {challenge && <Button type="link" block disabled={busy} onClick={() => {
             setChallenge(null); setCode(''); setError(''); setExpired(false)
-          }}>Change email / Restart</Button>}
+          }}>{t('auth.restart')}</Button>}
         </Space>
       </Form>
       <Typography.Paragraph type="secondary" className={styles.securityNote}>
-        Your account and authenticator are shared with twinsant.com; each site has its own sign-in session.
-        The emailed QR code and manual key grant long-term account access. Never forward them and delete
-        the email after setup. Authenticator recovery is not available yet.
+        {t('auth.security')}
       </Typography.Paragraph>
       <Typography.Paragraph type="secondary" className={styles.storageNote}>
-        Signing in does not upload or sync your code. Files stay in this browser.
+        {t('auth.localFiles')}
       </Typography.Paragraph>
-      <Button block onClick={close}>Continue as guest</Button>
+      <Button block onClick={close}>{t('auth.guest')}</Button>
     </Modal>
   )
 }

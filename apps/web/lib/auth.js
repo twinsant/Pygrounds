@@ -1,8 +1,12 @@
+import { LocalizedError, translate } from './i18n'
+
 export class AuthError extends Error {
-  constructor(message, status) {
+  constructor(message, status, translationKey, translationValues) {
     super(message)
     this.name = 'AuthError'
     this.status = status
+    this.translationKey = translationKey
+    this.translationValues = translationValues
   }
 }
 
@@ -13,7 +17,7 @@ export function maskEmail(email) {
 
 export async function authRequest(action, body, signal) {
   const methods = { me: 'GET', start: 'POST', verify: 'POST', logout: 'POST' }
-  if (!Object.hasOwn(methods, action)) throw new Error('Unknown authentication action')
+  if (!Object.hasOwn(methods, action)) throw new LocalizedError('auth.unknownAction')
   const response = await fetch(`/api/auth/${action}`, {
     method: methods[action],
     credentials: 'same-origin',
@@ -24,11 +28,15 @@ export async function authRequest(action, body, signal) {
   })
   if (response.status === 204 && action === 'logout') return
   if (!response.headers.get('content-type')?.includes('application/json')) {
-    throw new AuthError(`Authentication service returned HTTP ${response.status}. Please try again.`, response.status)
+    throw new AuthError(translate('en', 'auth.http', { status: response.status }), response.status,
+      'auth.http', { status: response.status })
   }
   const result = await response.json()
   if (!response.ok) {
-    throw new AuthError(typeof result?.detail === 'string' ? result.detail : `Authentication failed (HTTP ${response.status})`, response.status)
+    const hasDetail = typeof result?.detail === 'string'
+    const key = hasDetail ? 'auth.remoteError' : 'auth.failed'
+    const values = { detail: result?.detail, status: response.status }
+    throw new AuthError(translate('en', key, values), response.status, key, values)
   }
   const isUser = typeof result?.id === 'string' && result.id.length > 0 && typeof result?.email === 'string'
     && /^[^@]+@[^@]+$/.test(result.email)
@@ -38,7 +46,7 @@ export async function authRequest(action, body, signal) {
     && Number.isInteger(result?.expires_in) && result.expires_in >= 0 && result.expires_in <= 600
   if ((action === 'start' && !isChallenge)
     || (['me', 'verify'].includes(action) && !isUser) || action === 'logout') {
-    throw new AuthError('Invalid authentication service response. Please try again.', response.status)
+    throw new AuthError(translate('en', 'auth.invalidResponse'), response.status, 'auth.invalidResponse')
   }
   return result
 }
