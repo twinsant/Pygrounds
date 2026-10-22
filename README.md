@@ -154,6 +154,22 @@ bun run test:agent
 ./.venv/bin/python -m unittest discover -s tests -p 'test_pygrounds_agent.py'
 ```
 
+## 网页版可调整面板
+
+桌面端文件列表与工作区、工作区与 Agent 之间有左右拖拽分隔条，编辑器与控制台
+之间有上下拖拽分隔条。支持鼠标和触摸拖拽，并限制最小尺寸，避免挤没相邻面板。
+宽高调整会触发 Monaco 和 xterm 的自动适配，不重建编辑器、终端或 Agent。
+
+分隔条可用 Tab 聚焦，再按方向键调整（Shift 加快），Home / End 调到当前允许
+的最小 / 最大尺寸，双击或按 Enter 恢复默认大小。调整在当前页面内保留，
+关闭再打开 Agent 或切换语言/主题不会重置；刷新页面恢复默认布局。
+窄屏仍使用现有文件抽屉和 Agent 浮层，不显示侧边宽度分隔条；
+编辑器/控制台的高度分隔条保留。
+
+```bash
+bun run test:panels
+```
+
 ## 网页版多语言
 
 导航栏的语言按钮支持 **简体中文 / English**，首次访问按浏览器语言列表选择

@@ -50,10 +50,11 @@ describe('bilingual dictionaries', () => {
       'components/ThemeProvider.js', 'components/ThemeToggle.js', 'components/AgentPanel.js',
       'components/AuthProvider.js', 'components/AuthDialog.js', 'components/AccountControl.js',
       'components/xterm.js', 'lib/auth.js', 'lib/agent.js',
+      'components/ResizeHandle.js',
     ]
     for (const file of files) {
       const source = readFileSync(new URL(`../${file}`, import.meta.url), 'utf8')
-      for (const [, key] of source.matchAll(/['"]((?:home|auth|agent|terminal|theme|language|error)\.\w+)['"]/g)) {
+      for (const [, key] of source.matchAll(/['"]((?:home|auth|agent|terminal|theme|language|error|panels)\.\w+)['"]/g)) {
         expect(messages.en[key], `${file}: ${key}`).toBeString()
         expect(messages['zh-CN'][key], `${file}: ${key}`).toBeString()
       }

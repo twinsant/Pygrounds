@@ -174,12 +174,17 @@
 }
 
 .workspace {
+  --panel-handle-size: 6px;
+  --workbench-min: 320px;
+  --file-default: 240px;
+  --file-limit: calc(100% - var(--workbench-min) - var(--panel-handle-size));
+  --file-track: clamp(140px, var(--file-width, var(--file-default)), var(--file-limit));
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-columns: var(--file-track) var(--panel-handle-size) minmax(0, 1fr);
   min-height: 0;
   overflow: hidden;
   padding: 0 !important;
-  gap: 1px;
+  gap: 0;
   background: var(--border);
 }
 
@@ -192,12 +197,21 @@
 }
 
 .withAgent {
-  grid-template-columns: 200px minmax(0, 1fr) 360px;
+  --file-default: 200px;
+  --file-limit: calc(100% - var(--workbench-min) - 240px - var(--panel-handle-size) - var(--panel-handle-size));
+  --agent-limit: calc(100% - var(--file-track) - var(--workbench-min) - var(--panel-handle-size) - var(--panel-handle-size));
+  grid-template-columns: var(--file-track) var(--panel-handle-size) minmax(0, 1fr) var(--panel-handle-size) clamp(240px, var(--agent-width, 360px), var(--agent-limit));
 }
 
 @media (max-width: 1000px) {
   .withAgent {
-    grid-template-columns: 240px minmax(0, 1fr);
+    --file-default: 240px;
+    --file-limit: calc(100% - var(--workbench-min) - var(--panel-handle-size));
+    grid-template-columns: var(--file-track) var(--panel-handle-size) minmax(0, 1fr);
+  }
+
+  .agentResizeHandle {
+    display: none;
   }
 }
 
@@ -259,12 +273,15 @@
 }
 
 .workbench {
+  --panel-available: calc(100% - var(--panel-handle-size));
+  --editor-min: min(180px, calc(var(--panel-available) * 0.45));
+  --console-min: min(140px, calc(var(--panel-available) * 0.35));
   position: relative;
   display: grid;
   min-width: 0;
   min-height: 0;
-  grid-template-rows: minmax(0, 1.7fr) minmax(180px, 0.8fr);
-  gap: 1px;
+  grid-template-rows: clamp(var(--editor-min), var(--editor-height, 68%), calc(var(--panel-available) - var(--console-min))) var(--panel-handle-size) minmax(0, 1fr);
+  gap: 0;
   background: var(--border);
 }
 
@@ -367,7 +384,7 @@
 
 @media (max-width: 700px) {
   .workspace {
-    grid-template-columns: 180px minmax(0, 1fr);
+    --file-default: 180px;
   }
 }
 
@@ -383,6 +400,10 @@
     align-items: center;
     justify-content: center;
     color: var(--text) !important;
+  }
+
+  .fileResizeHandle {
+    display: none;
   }
 
   .filePanel {
@@ -427,7 +448,4 @@
     display: none;
   }
 
-  .workbench {
-    grid-template-rows: minmax(180px, 1.5fr) minmax(140px, 0.8fr);
-  }
 }

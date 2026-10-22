@@ -1,0 +1,61 @@
+.handle {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  min-height: 0;
+  outline: none;
+  background: var(--border);
+  touch-action: none;
+  user-select: none;
+}
+
+.handle[hidden] {
+  display: none;
+}
+
+.handle::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 2px;
+  background: var(--muted);
+  content: "";
+  transform: translate(-50%, -50%);
+}
+
+.vertical {
+  cursor: col-resize;
+}
+
+.vertical::before {
+  width: 2px;
+  height: 28px;
+}
+
+.horizontal {
+  cursor: row-resize;
+}
+
+.horizontal::before {
+  width: 28px;
+  height: 2px;
+}
+
+.handle:hover,
+.handle:focus-visible,
+.dragging {
+  background: var(--accent);
+}
+
+.handle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.dragging::after {
+  position: fixed;
+  z-index: 1000;
+  cursor: inherit;
+  content: "";
+  inset: 0;
+}

@@ -9,7 +9,7 @@ import styles from '../styles/Agent.module.css'
 import { useLanguage } from './LanguageProvider'
 import { errorMessage, LocalizedError } from '../lib/i18n'
 
-export default function AgentPanel({ open, onClose, getSnapshot, applyProposal }) {
+export default function AgentPanel({ open, onClose, getSnapshot, applyProposal, panelRef }) {
   const { t } = useLanguage()
   const { user, loading, error: authError, refresh, authenticate } = useAuth()
   const [loginOpen, setLoginOpen] = useState(false)
@@ -117,7 +117,7 @@ export default function AgentPanel({ open, onClose, getSnapshot, applyProposal }
   }
 
   return (
-    <aside id="agent-panel" className={styles.panel} hidden={!open} aria-label={t('agent.title')}>
+    <aside ref={panelRef} id="agent-panel" className={styles.panel} hidden={!open} aria-label={t('agent.title')}>
       <div className={styles.heading}>
         <strong>{t('agent.title')}</strong>
         <Space>

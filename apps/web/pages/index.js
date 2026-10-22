@@ -20,6 +20,7 @@ import { getMonacoTheme } from '../lib/theme'
 import { useLanguage } from '../components/LanguageProvider'
 import LanguageSelect from '../components/LanguageSelect'
 import { LocalizedError } from '../lib/i18n'
+import ResizeHandle from '../components/ResizeHandle'
 
 const plainColors = {
   gray: (text) => text,
@@ -52,6 +53,12 @@ export default function Home() {
   const { t } = useLanguage();
   const { user, loading: authLoading, error: authError } = useAuth();
   const [agentOpen, setAgentOpen] = useState(true);
+  const workspaceRef = useRef(null);
+  const filePanelRef = useRef(null);
+  const workbenchRef = useRef(null);
+  const editorPanelRef = useRef(null);
+  const consolePanelRef = useRef(null);
+  const agentPanelRef = useRef(null);
   const editorRef = useRef(null);
   const currentFilePathRef = useRef(INITIAL_FILE_PATH);
   const vimStatusRef = useRef(null);
@@ -540,7 +547,7 @@ export default function Home() {
           <AccountControl />
         </Header>
 
-        <Content className={`${styles.workspace} ${agentOpen ? styles.withAgent : ''} ${fileDrawerOpen ? styles.drawerOpen : ''}`} style={{ minHeight: 0 }}>
+        <Content ref={workspaceRef} className={`${styles.workspace} ${agentOpen ? styles.withAgent : ''} ${fileDrawerOpen ? styles.drawerOpen : ''}`} style={{ minHeight: 0 }}>
           {fileDrawerOpen && (
             <button
               type="button"
@@ -549,7 +556,7 @@ export default function Home() {
               onClick={() => setFileDrawerOpen(false)}
             />
           )}
-          <aside id="local-files-panel" className={styles.filePanel} aria-label={t('home.localFiles')}>
+          <aside ref={filePanelRef} id="local-files-panel" className={styles.filePanel} aria-label={t('home.localFiles')}>
             <div className={styles.panelHeading}>{t('home.localFiles')}</div>
             <div className={styles.fileList}>
               {displayedFiles.length > 0 ? displayedFiles.map(fileName => (
@@ -571,7 +578,10 @@ export default function Home() {
             </div>
           </aside>
 
-          <main className={styles.workbench}>
+          <ResizeHandle label={t('panels.files')} controls="local-files-panel"
+            containerRef={workspaceRef} targetRef={filePanelRef} adjacentRef={workbenchRef}
+            property="--file-width" className={styles.fileResizeHandle} />
+          <main ref={workbenchRef} className={styles.workbench}>
             {pyodideLoading && (
               <div className={styles.loadingOverlay}>
                 <LoadingOutlined className={styles.loadingIcon} />
@@ -585,7 +595,7 @@ export default function Home() {
                 />
               </div>
             )}
-            <section className={styles.editorPanel}>
+            <section ref={editorPanelRef} id="editor-panel" className={styles.editorPanel}>
               <div className={styles.panelToolbar}>
                 <div className={styles.currentFile}>
                   <FileOutlined />
@@ -635,14 +645,21 @@ export default function Home() {
               </div>
               <div ref={vimStatusRef} className={styles.vimStatus} />
             </section>
-            <section className={styles.consolePanel}>
+            <ResizeHandle label={t('panels.editorConsole')} controls="editor-panel console-panel"
+              orientation="horizontal" minimum={180} adjacentMinimum={140}
+              containerRef={workbenchRef} targetRef={editorPanelRef} adjacentRef={consolePanelRef}
+              property="--editor-height" />
+            <section ref={consolePanelRef} id="console-panel" className={styles.consolePanel}>
               <div className={styles.panelHeading}>{t('home.console')}</div>
               <div className={styles.terminalViewport}>
                 <XTerm onLoad={xtermLoaded} onSubmit={onTerminalSubmit} onInterrupt={onTerminalInterrupt} onClear={onTerminalClear} onTabComplete={completeTerminalInput}/>
               </div>
             </section>
           </main>
-          <AgentPanel key={user && !authLoading && !authError ? user.id : 'guest'} open={agentOpen} onClose={() => setAgentOpen(false)}
+          <ResizeHandle label={t('panels.agent')} controls="agent-panel" hidden={!agentOpen}
+            containerRef={workspaceRef} targetRef={agentPanelRef} adjacentRef={workbenchRef}
+            property="--agent-width" minimum={240} reverse className={styles.agentResizeHandle} />
+          <AgentPanel panelRef={agentPanelRef} key={user && !authLoading && !authError ? user.id : 'guest'} open={agentOpen} onClose={() => setAgentOpen(false)}
             getSnapshot={getAgentSnapshot} applyProposal={applyAgentProposal} />
         </Content>
         <Footer className={styles.footer}>
