@@ -117,10 +117,13 @@ bun run test:auth
 
 - 前端沿用 agents3 的 POST + SSE 交互，展示 `tool_start`、`tool_result`、
   `reply` 和 `error`；最终回复整体返回，暂不逐 token 输出。
+- Agent 回复支持 GitHub Flavored Markdown（列表、表格、链接和代码块等），
+  并在插入页面前经 DOMPurify 清理；用户消息和代码提案仍按纯文本/代码专用视图展示。
 - Next.js 将 `/api/agent` 同源代理到现有 FastAPI 的 `/pygrounds/agent`，
   与登录代理共用 `PYGROUNDS_AUTH_API_ORIGIN`。修改代理地址后需要重新构建。
 - 后端在 `twinsant/api/fapi/mini_agent.py` 移植 agents3 的工具/最终回复循环，
-  仅保留浏览器代码适用的工具，不依赖 agents3 服务或微信网关。
+  仅保留浏览器代码适用的工具，不依赖 agents3 服务或微信网关；兼容模型返回未带
+  `<final>` 标签的普通文本，同时继续严格校验工具调用。
 - 点击 Send 会把**当前文件路径、完整代码和问题**发送给服务器及 Anthropic。
   其他本地文件不会上传；不要在当前代码中包含密钥。对话按登录用户隔离，
   服务端保存最近 12 条问答，闲置 30 天后过期。浏览器刷新或 New chat 开始新会话；

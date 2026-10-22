@@ -8,6 +8,9 @@ import { MAX_AGENT_CODE, runAgent } from '../lib/agent'
 import styles from '../styles/Agent.module.css'
 import { useLanguage } from './LanguageProvider'
 import { errorMessage, LocalizedError } from '../lib/i18n'
+import dynamic from 'next/dynamic'
+
+const Markdown = dynamic(() => import('./Markdown'), { ssr: false })
 
 export default function AgentPanel({ open, onClose, getSnapshot, applyProposal, panelRef }) {
   const { t } = useLanguage()
@@ -167,7 +170,7 @@ export default function AgentPanel({ open, onClose, getSnapshot, applyProposal, 
                     )}
                   </div>
                 ))}
-                {message.content && <div className={styles.text}>{message.content}</div>}
+                {message.content && <Markdown content={message.content} />}
                 {message.role === 'agent' && !message.content && !message.failed && <Spin size="small" />}
                 {message.failed && <p>{t('agent.incomplete')}</p>}
               </article>
@@ -177,6 +180,9 @@ export default function AgentPanel({ open, onClose, getSnapshot, applyProposal, 
             {error && <Alert type="error" title={errorMessage(error, t)} role="alert" />}
             <Input.TextArea aria-label={t('agent.message')} value={prompt} maxLength={8000}
               onChange={event => setPrompt(event.target.value)} autoSize={{ minRows: 3, maxRows: 8 }}
+              onPressEnter={event => {
+                if (!event.shiftKey && !event.nativeEvent.isComposing) submit(event)
+              }}
               placeholder={t('agent.placeholder')} />
             <Space className={styles.actions}>
               {busy && <Button onClick={stop}>{t('agent.stop')}</Button>}

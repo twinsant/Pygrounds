@@ -97,7 +97,7 @@ export default {
   'agent.placeholder': 'Explain, debug, or improve the current file...',
   'agent.stop': 'Stop',
   'agent.send': 'Send',
-  'agent.manual': 'Apply only edits the buffer. Save and Run remain manual.',
+  'agent.manual': 'Enter sends; Shift+Enter adds a line. Apply only edits the buffer; Save and Run remain manual.',
   'agent.codeLimit': 'Current file exceeds the Agent limit of 64,000 characters.',
   'agent.cancelled': 'Agent request stopped. No changes were applied.',
   'agent.editorNotReady': 'The editor is not ready yet.',

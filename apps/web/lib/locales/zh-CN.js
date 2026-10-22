@@ -97,7 +97,7 @@ export default {
   'agent.placeholder': '解释、调试或改进当前文件...',
   'agent.stop': '停止',
   'agent.send': '发送',
-  'agent.manual': '应用仅修改编辑缓冲区，保存和运行仍需手动操作。',
+  'agent.manual': '按 Enter 发送，Shift+Enter 换行。应用仅修改编辑缓冲区，保存和运行仍需手动操作。',
   'agent.codeLimit': '当前文件超过 Agent 的 64,000 字符限制。',
   'agent.cancelled': 'Agent 请求已停止，未应用任何修改。',
   'agent.editorNotReady': '编辑器尚未就绪。',

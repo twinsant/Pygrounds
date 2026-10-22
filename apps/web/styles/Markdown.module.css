@@ -1,0 +1,125 @@
+.markdown {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.65;
+  white-space: normal;
+}
+
+.markdown > :first-child {
+  margin-top: 0;
+}
+
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown :global(p) {
+  margin: 0.65em 0;
+}
+
+.markdown :global(h1),
+.markdown :global(h2),
+.markdown :global(h3),
+.markdown :global(h4),
+.markdown :global(h5),
+.markdown :global(h6) {
+  margin: 1em 0 0.45em;
+  color: var(--text);
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.markdown :global(h1) {
+  font-size: 1.35em;
+}
+
+.markdown :global(h2) {
+  font-size: 1.2em;
+}
+
+.markdown :global(h3) {
+  font-size: 1.08em;
+}
+
+.markdown :global(ul),
+.markdown :global(ol) {
+  margin: 0.6em 0;
+  padding-left: 1.6em;
+}
+
+.markdown :global(li + li) {
+  margin-top: 0.25em;
+}
+
+.markdown :global(blockquote) {
+  margin: 0.75em 0;
+  border-left: 3px solid var(--accent);
+  padding: 0.15em 0 0.15em 0.85em;
+  color: var(--muted);
+}
+
+.markdown :global(pre) {
+  max-width: 100%;
+  margin: 0.75em 0;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--canvas);
+  color: var(--text);
+}
+
+.markdown :global(pre code) {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  white-space: pre;
+}
+
+.markdown :global(code) {
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  background: var(--surface-raised);
+  color: var(--accent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.92em;
+}
+
+.markdown :global(a) {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.markdown :global(table) {
+  display: block;
+  max-width: 100%;
+  margin: 0.75em 0;
+  overflow-x: auto;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+.markdown :global(th),
+.markdown :global(td) {
+  border: 1px solid var(--border);
+  padding: 5px 9px;
+  text-align: left;
+}
+
+.markdown :global(th) {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.markdown :global(hr) {
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+.markdown :global(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
