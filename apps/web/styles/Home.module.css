@@ -160,6 +160,16 @@
   background: #18191d;
 }
 
+.withAgent {
+  grid-template-columns: 200px minmax(0, 1fr) 360px;
+}
+
+@media (max-width: 1000px) {
+  .withAgent {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+}
+
 .panelHeading {
   display: flex;
   height: 38px;

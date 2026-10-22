@@ -12,6 +12,7 @@
     "build:web": "bun --cwd apps/web build",
     "lint:web": "bun --cwd apps/web lint",
     "test:auth": "bun test apps/web/tests/auth.test.js",
+    "test:agent": "bun test apps/web/tests/agent.test.js",
     "dev:desktop": "bun run sync:pyodide && bun --cwd apps/desktop tauri dev",
     "tauri:icon": "cd apps/desktop && bun run tauri:icon",
     "build:desktop": "bun run sync:pyodide && bun --cwd apps/desktop tauri build"

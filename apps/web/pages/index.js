@@ -11,6 +11,9 @@ import { PyodideRuntime } from '@pygrounds/python-runtime'
 // https://github.com/suren-atoyan/monaco-react
 import dynamic from "next/dynamic"
 import AccountControl from '../components/AccountControl'
+import AgentPanel from '../components/AgentPanel'
+import { useAuth } from '../components/AuthProvider'
+import { assertProposalTarget } from '../lib/agent'
 
 const plainColors = {
   gray: (text) => text,
@@ -33,6 +36,8 @@ const HOME_DIRECTORY = '/home/pygrounds';
 const INITIAL_FILE_PATH = `${HOME_DIRECTORY}/unamed.py`;
 
 export default function Home() {
+  const { user, loading: authLoading, error: authError } = useAuth();
+  const [agentOpen, setAgentOpen] = useState(true);
   const editorRef = useRef(null);
   const currentFilePathRef = useRef(INITIAL_FILE_PATH);
   const vimStatusRef = useRef(null);
@@ -350,6 +355,20 @@ export default function Home() {
     vimModeRef.current = initVimMode(editor, vimStatusRef.current);
   }
 
+  function getAgentSnapshot() {
+    if (!editorRef.current) throw new Error('The editor is not ready yet.');
+    return { path: currentFilePathRef.current, code: editorRef.current.getValue() };
+  }
+
+  function applyAgentProposal(snapshot, proposal) {
+    assertProposalTarget(snapshot, getAgentSnapshot(), proposal);
+    const editor = editorRef.current;
+    editor.pushUndoStop();
+    editor.executeEdits('agent', [{ range: editor.getModel().getFullModelRange(), text: proposal.code }]);
+    editor.pushUndoStop();
+    editor.focus();
+  }
+
   function saveEditorToHome() {
     if (!editorRef.current) {
       return;
@@ -494,7 +513,7 @@ export default function Home() {
             aria-label="Open local files"
             aria-expanded={fileDrawerOpen}
             aria-controls="local-files-panel"
-            onClick={() => setFileDrawerOpen(open => !open)}
+            onClick={() => { setFileDrawerOpen(open => !open); setAgentOpen(false); }}
             className={styles.mobileFilesButton}
           />
           <div className="logo" />
@@ -513,10 +532,14 @@ export default function Home() {
               }
             }}
           />
+          <Button type="text" aria-controls="agent-panel" aria-expanded={agentOpen}
+            onClick={() => { setAgentOpen(open => !open); setFileDrawerOpen(false); }}>
+            Agent
+          </Button>
           <AccountControl />
         </Header>
 
-        <Content className={`${styles.workspace} ${fileDrawerOpen ? styles.drawerOpen : ''}`} style={{ minHeight: 0 }}>
+        <Content className={`${styles.workspace} ${agentOpen ? styles.withAgent : ''} ${fileDrawerOpen ? styles.drawerOpen : ''}`} style={{ minHeight: 0 }}>
           {fileDrawerOpen && (
             <button
               type="button"
@@ -615,6 +638,8 @@ export default function Home() {
               </div>
             </section>
           </main>
+          <AgentPanel key={user && !authLoading && !authError ? user.id : 'guest'} open={agentOpen} onClose={() => setAgentOpen(false)}
+            getSnapshot={getAgentSnapshot} applyProposal={applyAgentProposal} />
         </Content>
         <Footer
           style={{

@@ -109,6 +109,51 @@ PYGROUNDS_AUTH_API_ORIGIN=http://127.0.0.1:8000 bun run build:web
 bun run test:auth
 ```
 
+## 登录后使用 Agent
+
+网页版右侧新增 Agent 面板，游客必须先登录；编辑、运行和本地保存仍无需登录。
+服务端每次调用都使用现有 `twinsant_session` 验证有效、已激活的账号，并检查请求来源，
+不是仅隐藏前端入口。桌面版不接入此功能。
+
+- 前端沿用 agents3 的 POST + SSE 交互，展示 `tool_start`、`tool_result`、
+  `reply` 和 `error`；最终回复整体返回，暂不逐 token 输出。
+- Next.js 将 `/api/agent` 同源代理到现有 FastAPI 的 `/pygrounds/agent`，
+  与登录代理共用 `PYGROUNDS_AUTH_API_ORIGIN`。修改代理地址后需要重新构建。
+- 后端在 `twinsant/api/fapi/mini_agent.py` 移植 agents3 的工具/最终回复循环，
+  仅保留浏览器代码适用的工具，不依赖 agents3 服务或微信网关。
+- 点击 Send 会把**当前文件路径、完整代码和问题**发送给服务器及 Anthropic。
+  其他本地文件不会上传；不要在当前代码中包含密钥。对话按登录用户隔离，
+  服务端保存最近 12 条问答，闲置 30 天后过期。浏览器刷新或 New chat 开始新会话；
+  退出、换号或认证失效会清除当前面板，不删除本地代码文件。
+- `read_file` 仅查看本次提交的快照；`propose_code` 返回可预览的完整替换代码。
+  用户点击 **Apply to editor** 才会修改编辑缓冲区，支持 Monaco 撤销，
+  不自动保存或执行。切换文件或编辑过原代码后，旧提案会被拒绝，须重新请求。
+- 不能访问服务器文件、执行 shell 或服务端 Python；Python 仍由 Pyodide 运行。
+  请求超时 180 秒，每账号同时最多一个请求、每 10 分钟最多 20 次；
+  Stop 会中止连接，后端取消正在进行的模型调用。
+
+在现有 FastAPI 服务的服务端环境中配置（**不要设置为 `NEXT_PUBLIC_*`**）：
+
+```bash
+ANTHROPIC_API_KEY=...
+PYGROUNDS_AGENT_MODEL=<该 API key 可用的 Claude 模型 ID>
+# 可选：沿用现有 ANTHROPIC_BASE_URL、HTTPX_PROXY
+```
+
+未配置 key 或模型时，Agent 返回明确的 503，不影响游客编辑器。
+需先发布 FastAPI 代码并重启服务，再构建发布 Pygrounds 网页版；启动时会创建
+Agent 会话和并发锁的 MongoDB TTL 索引，不需新增依赖。
+Next.js 代理超时已设为 240 秒；部署时还需运行 `./ops/deploy-nginx.sh`，
+为 `/api/agent` 禁用 nginx 缓冲并设置 240 秒超时。其他中间代理也应保留 SSE 流式传输。
+
+回归测试：
+
+```bash
+bun run test:agent
+# 在 twinsant/api/fapi 目录：
+./.venv/bin/python -m unittest discover -s tests -p 'test_pygrounds_agent.py'
+```
+
 ## Google tag
 
 在线版使用 Google tag（Google Analytics 4）。部署前在构建环境设置 GA4 衡量 ID，格式为 `G-XXXXXXXXXX`：

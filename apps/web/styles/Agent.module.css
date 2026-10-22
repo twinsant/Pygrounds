@@ -1,0 +1,89 @@
+.panel {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  background: #18191d;
+  color: #c8c9ce;
+  overflow: hidden;
+}
+
+.panel[hidden] {
+  display: none;
+}
+
+.heading {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-bottom: 1px solid #303238;
+}
+
+.gate,
+.feed {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+}
+
+.notice,
+.composer small {
+  color: #a7a9b0;
+  font-size: 12px;
+}
+
+.message {
+  padding: 12px 0;
+  border-bottom: 1px solid #303238;
+  overflow-wrap: anywhere;
+}
+
+.text,
+.step p {
+  white-space: pre-wrap;
+}
+
+.step {
+  margin: 12px 0;
+  font-size: 12px;
+}
+
+.step summary {
+  cursor: pointer;
+}
+
+.code {
+  max-height: 280px;
+  overflow: auto;
+  padding: 8px;
+  background: #1e1e1e;
+  white-space: pre;
+}
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid #303238;
+}
+
+.actions {
+  justify-content: flex-end;
+}
+
+@media (max-width: 1000px) {
+  .panel {
+    position: fixed;
+    z-index: 32;
+    top: 40px;
+    right: 0;
+    bottom: 48px;
+    width: min(380px, 100vw);
+    border-left: 1px solid #303238;
+    box-shadow: -10px 0 28px rgb(0 0 0 / 35%);
+  }
+}

@@ -98,6 +98,9 @@ describe('authentication proxy configuration', () => {
     expect(await config.rewrites()).toEqual([{
       source: '/api/auth/:action(start|verify|me|logout)',
       destination: 'http://127.0.0.1:8000/auth/totp/:action',
+    }, {
+      source: '/api/agent',
+      destination: 'http://127.0.0.1:8000/pygrounds/agent',
     }])
   })
 
