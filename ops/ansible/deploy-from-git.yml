@@ -177,7 +177,7 @@
       changed_when: false
 
     - name: Check if systemd service is loaded
-      ansible.builtin.command: "systemctl show {{ service_name }} --property=LoadState --value"
+      ansible.builtin.command: "systemctl show {{ service_name }} --property=LoadState"
       register: systemd_load_state
       changed_when: false
       failed_when: false
@@ -185,7 +185,8 @@
     - name: Assert Pygrounds systemd service exists
       ansible.builtin.assert:
         that:
-          - systemd_load_state.stdout | trim != 'not-found'
+          - systemd_load_state.rc == 0
+          - systemd_load_state.stdout | trim == 'LoadState=loaded'
         fail_msg: "Systemd service {{ service_name }} is missing. Run ops/deploy-systemd.sh first."
 
     - name: Restart Pygrounds systemd service
