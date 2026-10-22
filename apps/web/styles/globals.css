@@ -2,8 +2,9 @@ html,
 body {
   padding: 0;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+  color: var(--text);
+  background: var(--canvas);
 }
 
 a {
@@ -15,12 +16,30 @@ a {
   box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-  body {
-    color: white;
-    background: black;
-  }
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+* {
+  scrollbar-color: var(--border) var(--canvas);
+  scrollbar-width: thin;
+}
+
+.theme-notice {
+  position: fixed;
+  z-index: 2000;
+  top: 48px;
+  right: 16px;
+  width: min(420px, calc(100vw - 32px));
+}
+
+html[data-theme] .xterm .xterm-viewport {
+  background-color: var(--canvas);
 }

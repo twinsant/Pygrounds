@@ -154,6 +154,22 @@ bun run test:agent
 ./.venv/bin/python -m unittest discover -s tests -p 'test_pygrounds_agent.py'
 ```
 
+## 网页版明暗模式
+
+右上角太阳/月亮按钮切换浅色和深色。首次访问跟随系统偏好，手动选择保存在
+`localStorage` 的 `pygrounds-theme`，刷新后继续使用，也会同步到同源其他标签页。
+浏览器禁止本地存储时仍可切换，但会明确提示设置无法持久化。
+
+配色参考 twinsant.com 的深海军蓝、石板灰表面和单一蓝色强调色设计，并扩展对应
+浅色方案。语义颜色统一定义在 `apps/web/lib/theme.js`，同时驱动页面 CSS、
+Ant Design（包括登录弹窗）、Monaco 编辑器和 xterm 终端；普通/次要文字与终端
+ANSI 颜色均有 4.5:1 对比度回归测试。切换只更新主题，不重建编辑器、终端或
+Agent 会话，因此未保存代码、终端输出和对话会保留。桌面版暂不改变。
+
+```bash
+bun run test:theme
+```
+
 ## Google tag
 
 在线版使用 Google tag（Google Analytics 4）。部署前在构建环境设置 GA4 衡量 ID，格式为 `G-XXXXXXXXXX`：

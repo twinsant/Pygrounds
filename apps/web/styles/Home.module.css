@@ -130,8 +130,37 @@
 
 .container {
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
-  background: #0f1115;
+  background: var(--canvas);
+}
+
+.layout {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.layout .header {
+  display: flex;
+  height: 40px;
+  min-height: 40px;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border);
+  line-height: 40px;
+}
+
+.layout .footer {
+  height: 48px;
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
 }
 
 .mobileFilesButton {
@@ -140,6 +169,8 @@
 
 .topMenu {
   min-width: 0;
+  border: 0;
+  background: transparent;
 }
 
 .workspace {
@@ -149,7 +180,7 @@
   overflow: hidden;
   padding: 0 !important;
   gap: 1px;
-  background: #303238;
+  background: var(--border);
 }
 
 .filePanel {
@@ -157,7 +188,7 @@
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  background: #18191d;
+  background: var(--surface);
 }
 
 .withAgent {
@@ -176,8 +207,8 @@
   flex: 0 0 38px;
   align-items: center;
   padding: 0 14px;
-  border-bottom: 1px solid #303238;
-  color: #a7a9b0;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -200,7 +231,7 @@
   border-radius: 4px;
   padding: 7px 9px;
   background: transparent;
-  color: #c8c9ce;
+  color: var(--text);
   cursor: pointer;
   font-size: 13px;
   text-align: left;
@@ -213,17 +244,17 @@
 }
 
 .fileItem:hover {
-  background: #292b31;
+  background: var(--surface-raised);
 }
 
 .activeFile {
-  background: #292b31;
-  color: #fff;
+  background: var(--selection);
+  color: var(--accent);
 }
 
 .emptyFiles {
   padding: 10px;
-  color: #858791;
+  color: var(--muted);
   font-size: 13px;
 }
 
@@ -234,7 +265,7 @@
   min-height: 0;
   grid-template-rows: minmax(0, 1.7fr) minmax(180px, 0.8fr);
   gap: 1px;
-  background: #303238;
+  background: var(--border);
 }
 
 .editorPanel,
@@ -243,7 +274,7 @@
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  background: #1e1e1e;
+  background: var(--canvas);
 }
 
 .panelToolbar {
@@ -254,8 +285,8 @@
   justify-content: space-between;
   gap: 12px;
   padding: 0 12px;
-  border-bottom: 1px solid #303238;
-  background: #18191d;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .currentFile {
@@ -263,7 +294,7 @@
   min-width: 0;
   align-items: center;
   gap: 8px;
-  color: #c8c9ce;
+  color: var(--text);
   font-size: 13px;
 }
 
@@ -282,7 +313,7 @@
 }
 
 .currentFile input {
-  outline: 1px solid #1677ff;
+  outline: 1px solid var(--accent);
 }
 
 .editorViewport {
@@ -294,8 +325,8 @@
   height: 24px;
   flex: 0 0 24px;
   padding: 2px 8px;
-  background: #252526;
-  color: #ccc;
+  background: var(--surface);
+  color: var(--muted);
   font-family: monospace;
   font-size: 12px;
 }
@@ -304,7 +335,7 @@
   min-height: 0;
   flex: 1;
   padding: 8px;
-  background: #111827;
+  background: var(--canvas);
 }
 
 .loadingOverlay {
@@ -314,8 +345,20 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgb(0 0 0 / 70%);
+  background: var(--scrim);
   inset: 0;
+}
+
+.loadingIcon {
+  margin-bottom: 16px;
+  color: var(--accent);
+  font-size: 32px;
+}
+
+.loadingLabel {
+  margin-bottom: 16px;
+  color: var(--text);
+  font-size: 14px;
 }
 
 .drawerBackdrop {
@@ -339,7 +382,7 @@
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    color: #fff !important;
+    color: var(--text) !important;
   }
 
   .filePanel {

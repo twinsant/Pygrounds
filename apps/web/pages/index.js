@@ -14,6 +14,9 @@ import AccountControl from '../components/AccountControl'
 import AgentPanel from '../components/AgentPanel'
 import { useAuth } from '../components/AuthProvider'
 import { assertProposalTarget } from '../lib/agent'
+import { useTheme } from '../components/ThemeProvider'
+import ThemeToggle from '../components/ThemeToggle'
+import { getMonacoTheme } from '../lib/theme'
 
 const plainColors = {
   gray: (text) => text,
@@ -35,7 +38,14 @@ const { Header, Content, Footer } = Layout;
 const HOME_DIRECTORY = '/home/pygrounds';
 const INITIAL_FILE_PATH = `${HOME_DIRECTORY}/unamed.py`;
 
+function beforeEditorMount(monaco) {
+  for (const mode of ['dark', 'light']) {
+    monaco.editor.defineTheme(`pygrounds-${mode}`, getMonacoTheme(mode));
+  }
+}
+
 export default function Home() {
+  const { mode } = useTheme();
   const { user, loading: authLoading, error: authError } = useAuth();
   const [agentOpen, setAgentOpen] = useState(true);
   const editorRef = useRef(null);
@@ -505,8 +515,8 @@ export default function Home() {
         onError={pyodideLoadError}
       />
 
-      <Layout className="layout" style={{ height: '100vh', minHeight: 0, overflow: 'hidden' }}>
-        <Header style={{ height: 40, lineHeight: '40px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+      <Layout className={styles.layout}>
+        <Header className={styles.header}>
           <Button
             type="text"
             icon={<MenuOutlined />}
@@ -516,13 +526,11 @@ export default function Home() {
             onClick={() => { setFileDrawerOpen(open => !open); setAgentOpen(false); }}
             className={styles.mobileFilesButton}
           />
-          <div className="logo" />
           <Menu
             className={styles.topMenu}
-            theme="dark"
             mode="horizontal"
             style={{ flex: 1, minWidth: 0 }}
-            defaultSelectedKeys={['m1']}
+            selectedKeys={[]}
             items={menus}
             onClick={({ key }) => {
               if (key === 'save') {
@@ -536,6 +544,7 @@ export default function Home() {
             onClick={() => { setAgentOpen(open => !open); setFileDrawerOpen(false); }}>
             Agent
           </Button>
+          <ThemeToggle />
           <AccountControl />
         </Header>
 
@@ -573,8 +582,8 @@ export default function Home() {
           <main className={styles.workbench}>
             {pyodideLoading && (
               <div className={styles.loadingOverlay}>
-                <LoadingOutlined style={{fontSize: 32, color: '#1677ff', marginBottom: 16}} />
-                <div style={{color: '#fff', marginBottom: 16, fontSize: 14}}>
+                <LoadingOutlined className={styles.loadingIcon} />
+                <div className={styles.loadingLabel}>
                   Loading Pyodide...
                 </div>
                 <Progress
@@ -622,7 +631,8 @@ export default function Home() {
               <div className={styles.editorViewport}>
                 <Editor
                   height="100%"
-                  theme="vs-dark"
+                  theme={`pygrounds-${mode}`}
+                  beforeMount={beforeEditorMount}
                   defaultLanguage="python"
                   options={{minimap: false}}
                   defaultValue="print('hello, world')"
@@ -641,14 +651,7 @@ export default function Home() {
           <AgentPanel key={user && !authLoading && !authError ? user.id : 'guest'} open={agentOpen} onClose={() => setAgentOpen(false)}
             getSnapshot={getAgentSnapshot} applyProposal={applyAgentProposal} />
         </Content>
-        <Footer
-          style={{
-            textAlign: 'center',
-            height: 48,
-            padding: '4px 24px',
-            flexShrink: 0,
-          }}
-        >
+        <Footer className={styles.footer}>
           <p style={{margin: 0}}><b>Pygrounds</b> ©2026 &#10084;&#65039; by <a href="https://twitter.com/twinsant"><u>twinsant</u></a> · Powered with Pyodide & Monaco Editor</p>
         </Footer>
       </Layout>

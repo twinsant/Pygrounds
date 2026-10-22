@@ -139,7 +139,7 @@ export default function AgentPanel({ open, onClose, getSnapshot, applyProposal }
           <div className={styles.feed} ref={feed} role="log" aria-label="Agent conversation" aria-live="polite">
             {!messages.length && <p className={styles.notice}>Ask about your Python code. Sending shares the current file with the server and Anthropic. Other local files are not sent. Changes require your approval.</p>}
             {messages.map(message => (
-              <article key={message.id} className={styles.message}>
+              <article key={message.id} className={styles.message} data-role={message.role}>
                 <strong>{message.role === 'user' ? 'You' : 'Agent'}</strong>
                 {message.steps?.map(step => (
                   <div key={step.id} className={styles.step}>

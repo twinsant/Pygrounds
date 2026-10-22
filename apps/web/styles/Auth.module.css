@@ -6,13 +6,13 @@
 
 .trigger,
 .trigger:disabled {
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--text);
 }
 
 .trigger:not(:disabled):hover,
 .trigger:not(:disabled):focus-visible {
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.12) !important;
+  color: var(--text) !important;
+  background: var(--surface-raised) !important;
 }
 
 .accountLabel {
@@ -35,7 +35,7 @@
 .securityNote {
   margin-top: 24px;
   padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border);
   font-size: 12px;
 }
 
@@ -55,6 +55,6 @@
 
 @media (max-width: 480px) {
   .accountLabel {
-    max-width: 130px;
+    max-width: 94px;
   }
 }

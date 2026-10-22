@@ -3,9 +3,11 @@
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  background: #18191d;
-  color: #c8c9ce;
+  background: var(--surface);
+  color: var(--text);
   overflow: hidden;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .panel[hidden] {
@@ -18,7 +20,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 12px;
-  border-bottom: 1px solid #303238;
+  border-bottom: 1px solid var(--border);
 }
 
 .gate,
@@ -26,19 +28,36 @@
   min-height: 0;
   flex: 1;
   overflow: auto;
-  padding: 12px;
+  padding: 16px;
 }
 
 .notice,
 .composer small {
-  color: #a7a9b0;
+  color: var(--muted);
   font-size: 12px;
+  line-height: 1.6;
 }
 
 .message {
-  padding: 12px 0;
-  border-bottom: 1px solid #303238;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
   overflow-wrap: anywhere;
+}
+
+.message > strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.message[data-role="user"] {
+  margin: 8px 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--selection);
 }
 
 .text,
@@ -53,13 +72,17 @@
 
 .step summary {
   cursor: pointer;
+  color: var(--accent);
 }
 
 .code {
   max-height: 280px;
   overflow: auto;
   padding: 8px;
-  background: #1e1e1e;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--canvas);
+  color: var(--text);
   white-space: pre;
 }
 
@@ -68,7 +91,8 @@
   flex-direction: column;
   gap: 8px;
   padding: 12px;
-  border-top: 1px solid #303238;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .actions {
@@ -83,7 +107,7 @@
     right: 0;
     bottom: 48px;
     width: min(380px, 100vw);
-    border-left: 1px solid #303238;
+    border-left: 1px solid var(--border);
     box-shadow: -10px 0 28px rgb(0 0 0 / 35%);
   }
 }
