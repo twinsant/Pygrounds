@@ -1,6 +1,48 @@
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
-import { clampPanelSize, getResizeMetrics } from '../lib/panels'
+import {
+  clampPanelSize, getResizeMetrics, PANEL_LAYOUT_STORAGE_KEY,
+  PANEL_SIZE_PROPERTIES, parsePanelLayout,
+} from '../lib/panels'
+
+describe('saved panel layout', () => {
+  test('restores all three sizes including fractional editor heights', () => {
+    expect(PANEL_LAYOUT_STORAGE_KEY).toBe('pygrounds-panels')
+    const layout = { '--file-width': 250, '--agent-width': 410, '--editor-height': 592.953125 }
+    expect(parsePanelLayout(JSON.stringify(layout))).toEqual(layout)
+    expect(Object.keys(layout).sort()).toEqual([...PANEL_SIZE_PROPERTIES].sort())
+    expect(parsePanelLayout(null)).toEqual({})
+    expect(parsePanelLayout('{}')).toEqual({})
+    expect(parsePanelLayout('{"--file-width":0}')).toEqual({ '--file-width': 0 })
+  })
+
+  test('rejects malformed storage and arbitrary CSS properties instead of applying them', () => {
+    for (const raw of [
+      '', 'invalid', 'null', '[]', '42', '"large"', '{"--file-width":"250px"}',
+      '{"--file-width":null}', '{"--file-width":-1}', '{"--file-width":100001}',
+      '{"--file-width":1e999}', '{"--canvas":"red"}', '{"__proto__":{}}',
+    ]) {
+      expect(() => parsePanelLayout(raw), raw).toThrow()
+    }
+  })
+
+  test('resetting one size preserves the others and smaller viewports clamp restored sizes', () => {
+    const layout = parsePanelLayout('{"--file-width":800,"--agent-width":400,"--editor-height":600}')
+    delete layout['--file-width']
+    expect(parsePanelLayout(JSON.stringify(layout))).toEqual({ '--agent-width': 400, '--editor-height': 600 })
+    const bounds = getResizeMetrics(200, 320, 140, 320)
+    expect(clampPanelSize(800, bounds)).toBe(200)
+  })
+})
+
+test('editor track is shared with Agent so the composer follows console header bottom', () => {
+  const home = readFileSync(new URL('../styles/Home.module.css', import.meta.url), 'utf8')
+  const agent = readFileSync(new URL('../styles/Agent.module.css', import.meta.url), 'utf8')
+  const workspace = home.match(/\.workspace\s*\{([^}]+)\}/)?.[1]
+  expect(workspace).toContain('--editor-track:')
+  expect(home).toContain('grid-template-rows: var(--editor-track) var(--panel-handle-size)')
+  expect(agent).toContain('flex: 0 0 calc(var(--editor-track) + var(--panel-handle-size) - 1px);')
+})
 
 test('all panel headers share one fixed height so their borders align', () => {
   const home = readFileSync(new URL('../styles/Home.module.css', import.meta.url), 'utf8')

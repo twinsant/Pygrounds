@@ -20,6 +20,7 @@ export default function AgentPanel({ open, onClose, getSnapshot, applyProposal, 
   const session = useRef(null)
   const request = useRef(null)
   const feed = useRef(null)
+  const composer = useRef(null)
   const enabled = Boolean(user) && !loading && !authError
 
   useEffect(() => {
@@ -32,6 +33,10 @@ export default function AgentPanel({ open, onClose, getSnapshot, applyProposal, 
   useEffect(() => {
     if (open) feed.current?.scrollTo({ top: feed.current.scrollHeight })
   }, [messages, open])
+
+  useEffect(() => {
+    if (error) composer.current?.scrollTo({ top: 0 })
+  }, [error])
 
   function stop() {
     request.current?.abort()
@@ -168,8 +173,8 @@ export default function AgentPanel({ open, onClose, getSnapshot, applyProposal, 
               </article>
             ))}
           </div>
-          {error && <Alert type="error" title={errorMessage(error, t)} role="alert" />}
-          <form className={styles.composer} onSubmit={submit}>
+          <form ref={composer} className={styles.composer} onSubmit={submit}>
+            {error && <Alert type="error" title={errorMessage(error, t)} role="alert" />}
             <Input.TextArea aria-label={t('agent.message')} value={prompt} maxLength={8000}
               onChange={event => setPrompt(event.target.value)} autoSize={{ minRows: 3, maxRows: 8 }}
               placeholder={t('agent.placeholder')} />

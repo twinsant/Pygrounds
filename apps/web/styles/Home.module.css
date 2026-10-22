@@ -176,6 +176,10 @@
 .workspace {
   --panel-header-height: 42px;
   --panel-handle-size: 6px;
+  --panel-available: calc(100% - var(--panel-handle-size));
+  --editor-min: min(180px, calc(var(--panel-available) * 0.45));
+  --console-min: min(140px, calc(var(--panel-available) * 0.35));
+  --editor-track: clamp(var(--editor-min), var(--editor-height, 68%), calc(var(--panel-available) - var(--console-min)));
   --workbench-min: 320px;
   --file-default: 240px;
   --file-limit: calc(100% - var(--workbench-min) - var(--panel-handle-size));
@@ -274,14 +278,11 @@
 }
 
 .workbench {
-  --panel-available: calc(100% - var(--panel-handle-size));
-  --editor-min: min(180px, calc(var(--panel-available) * 0.45));
-  --console-min: min(140px, calc(var(--panel-available) * 0.35));
   position: relative;
   display: grid;
   min-width: 0;
   min-height: 0;
-  grid-template-rows: clamp(var(--editor-min), var(--editor-height, 68%), calc(var(--panel-available) - var(--console-min))) var(--panel-handle-size) minmax(0, 1fr);
+  grid-template-rows: var(--editor-track) var(--panel-handle-size) minmax(0, 1fr);
   gap: 0;
   background: var(--border);
 }

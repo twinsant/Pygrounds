@@ -6,7 +6,7 @@ import styles from '../styles/ResizeHandle.module.css'
 export default function ResizeHandle({
   label, controls, containerRef, targetRef, adjacentRef, property,
   orientation = 'vertical', reverse = false, minimum = 140, adjacentMinimum = 320,
-  className = '', hidden = false,
+  className = '', hidden = false, onCommit,
 }) {
   const { t } = useLanguage()
   const [metrics, setMetrics] = useState({ value: minimum, min: minimum, max: minimum })
@@ -30,16 +30,24 @@ export default function ResizeHandle({
     return () => observer.disconnect()
   }, [measure, containerRef, adjacentRef])
 
-  function resize(size) {
-    containerRef.current.style.setProperty(property, `${clampPanelSize(size, measure())}px`)
+  function resize(size, persist = false) {
+    const next = clampPanelSize(size, measure())
+    containerRef.current.style.setProperty(property, `${next}px`)
+    if (drag.current) drag.current.value = next
+    if (persist) onCommit?.(property, next)
   }
 
   function reset() {
     containerRef.current.style.removeProperty(property)
+    if (drag.current) drag.current.changed = false
+    onCommit?.(property, null)
   }
 
   function finish(event) {
     if (drag.current?.pointerId !== event.pointerId) return
+    if (drag.current.changed) {
+      onCommit?.(property, drag.current.value)
+    }
     drag.current = null
     setDragging(false)
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -54,10 +62,10 @@ export default function ResizeHandle({
     if (event.key === increase || event.key === decrease) {
       event.preventDefault()
       resize(current.value + (event.shiftKey ? 50 : 10)
-        * (event.key === increase ? 1 : -1) * (reverse ? -1 : 1))
+        * (event.key === increase ? 1 : -1) * (reverse ? -1 : 1), true)
     } else if (event.key === 'Home' || event.key === 'End') {
       event.preventDefault()
-      resize(event.key === 'Home' ? current.min : current.max)
+      resize(event.key === 'Home' ? current.min : current.max, true)
     } else if (event.key === 'Enter') {
       event.preventDefault()
       reset()
@@ -80,6 +88,7 @@ export default function ResizeHandle({
           pointerId: event.pointerId,
           coordinate: horizontal ? event.clientY : event.clientX,
           size: measure().value,
+          changed: false,
         }
         setDragging(true)
       }}
@@ -87,6 +96,7 @@ export default function ResizeHandle({
         if (drag.current?.pointerId !== event.pointerId) return
         const coordinate = horizontal ? event.clientY : event.clientX
         resize(drag.current.size + (coordinate - drag.current.coordinate) * (reverse ? -1 : 1))
+        drag.current.changed = true
       }}
       onPointerUp={finish} onPointerCancel={finish} onLostPointerCapture={finish}
     />

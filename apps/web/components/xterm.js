@@ -6,7 +6,6 @@ import { WebLinksAddon } from '@xterm/addon-web-links';
 import { WebglAddon } from '@xterm/addon-webgl';
 import colors from 'ansi-colors';
 import '@xterm/xterm/css/xterm.css';
-import { useTheme } from './ThemeProvider';
 import { getTerminalTheme } from '../lib/theme';
 import { useLanguage } from './LanguageProvider';
 
@@ -15,18 +14,11 @@ function XTerm(props) {
   const terminalRef = useRef(null);
   const containerRef = useRef(null);
   const callbacksRef = useRef(props);
-  const { mode } = useTheme();
   const { language, t } = useLanguage();
-  const modeRef = useRef(mode);
 
   useEffect(() => {
     callbacksRef.current = props;
   }, [props]);
-
-  useEffect(() => {
-    modeRef.current = mode;
-    if (terminalRef.current) terminalRef.current.options.theme = getTerminalTheme(mode);
-  }, [mode]);
 
   useEffect(() => {
     terminalRef.current?.textarea?.setAttribute('aria-label', t('terminal.input'));
@@ -39,7 +31,7 @@ function XTerm(props) {
                 cursorBlink: true,
                 windowsMode: true,
                 convertEol: true,
-                theme: getTerminalTheme(modeRef.current),
+                theme: getTerminalTheme('dark'),
             })
             terminalRef.current = term;
             const fitAddon = new FitAddon();

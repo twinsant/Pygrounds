@@ -1,7 +1,7 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { runInNewContext } from 'node:vm'
 import {
-  getMonacoTheme, getTerminalTheme, palettes, resolveTheme,
+  getMonacoTheme, getTerminalTheme, getThemeVariables, palettes, resolveTheme,
   themeBootstrap, themeCss, THEME_STORAGE_KEY,
 } from '../lib/theme'
 
@@ -67,7 +67,19 @@ describe('unified design tokens', () => {
     }
   })
 
-  test('Monaco and terminal consume the page palette in each mode', () => {
+  test('a fixed dark console can reuse all semantic variables independently of the page mode', () => {
+    const dark = getThemeVariables('dark')
+    expect(dark['--canvas']).toBe(palettes.dark.canvas)
+    expect(dark['--surface']).toBe(palettes.dark.surface)
+    expect(dark['--surface-raised']).toBe(palettes.dark.surfaceRaised)
+    expect(dark['--text']).toBe(palettes.dark.text)
+    expect(dark['--border']).toBe(palettes.dark.border)
+    expect(dark['--canvas']).not.toBe(getThemeVariables('light')['--canvas'])
+    expect(getTerminalTheme('dark').background).toBe(dark['--canvas'])
+    expect(Object.keys(dark)).toHaveLength(Object.keys(palettes.dark).length)
+  })
+
+  test('Monaco and terminal theme factories consume the requested palette', () => {
     for (const [mode, p] of Object.entries(palettes)) {
       const monaco = getMonacoTheme(mode)
       const terminal = getTerminalTheme(mode)

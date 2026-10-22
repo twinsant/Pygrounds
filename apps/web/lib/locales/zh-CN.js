@@ -26,6 +26,8 @@ export default {
   'panels.agent': '调整 Agent 宽度',
   'panels.editorConsole': '调整编辑器和控制台高度',
   'panels.hint': '拖拽或使用方向键调整，按住 Shift 可加快调整。双击或按 Enter 恢复默认大小。',
+  'panels.restoreError': '无法恢复已保存的面板布局，仍可继续拖拽调整。',
+  'panels.saveError': '浏览器无法保存面板布局，本次访问仍可调整，刷新后将无法保留。',
   'terminal.input': '终端输入',
   'terminal.loading': '正在加载 {name} ...',
   'terminal.notReady': 'Pyodide 尚未就绪，请稍候...',

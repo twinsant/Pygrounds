@@ -48,9 +48,15 @@ export function resolveTheme(preference, systemDark) {
     : systemDark ? 'dark' : 'light'
 }
 
-export const themeCss = Object.entries(palettes).map(([mode, palette]) => (
-  `html[data-theme="${mode}"]{color-scheme:${mode};${Object.entries(palette).map(([key, value]) => (
-    `--${key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)}:${value};`
+export function getThemeVariables(mode) {
+  return Object.fromEntries(Object.entries(palettes[mode]).map(([key, value]) => [
+    `--${key.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`)}`, value,
+  ]))
+}
+
+export const themeCss = Object.keys(palettes).map(mode => (
+  `html[data-theme="${mode}"]{color-scheme:${mode};${Object.entries(getThemeVariables(mode)).map(([key, value]) => (
+    `${key}:${value};`
   )).join('')}}`
 )).join('')
 

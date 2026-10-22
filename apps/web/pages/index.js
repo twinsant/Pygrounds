@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react'
 import Head from 'next/head'
 import Script from 'next/script'
 import Link from 'next/link'
-import { Button, Layout, Menu, Progress } from 'antd';
+import { Alert, Button, Layout, Menu, Progress } from 'antd';
 import { FileOutlined, MenuOutlined, PlayCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 import styles from '../styles/Home.module.css'
 import { PlaygroundShell } from '@pygrounds/app-ui'
@@ -16,11 +16,14 @@ import { useAuth } from '../components/AuthProvider'
 import { assertProposalTarget } from '../lib/agent'
 import { useTheme } from '../components/ThemeProvider'
 import ThemeToggle from '../components/ThemeToggle'
-import { getMonacoTheme } from '../lib/theme'
+import { getMonacoTheme, getThemeVariables } from '../lib/theme'
 import { useLanguage } from '../components/LanguageProvider'
 import LanguageSelect from '../components/LanguageSelect'
 import { LocalizedError } from '../lib/i18n'
 import ResizeHandle from '../components/ResizeHandle'
+import { PANEL_LAYOUT_STORAGE_KEY, parsePanelLayout } from '../lib/panels'
+
+const CONSOLE_THEME = { ...getThemeVariables('dark'), colorScheme: 'dark' }
 
 const plainColors = {
   gray: (text) => text,
@@ -59,6 +62,8 @@ export default function Home() {
   const editorPanelRef = useRef(null);
   const consolePanelRef = useRef(null);
   const agentPanelRef = useRef(null);
+  const panelLayout = useRef({});
+  const [layoutError, setLayoutError] = useState('');
   const editorRef = useRef(null);
   const currentFilePathRef = useRef(INITIAL_FILE_PATH);
   const vimStatusRef = useRef(null);
@@ -78,6 +83,34 @@ export default function Home() {
   const [editingFileName, setEditingFileName] = useState(false);
   const [fileDrawerOpen, setFileDrawerOpen] = useState(false);
   const progressTimer = useRef(null);
+
+  useEffect(() => {
+    try {
+      panelLayout.current = parsePanelLayout(localStorage.getItem(PANEL_LAYOUT_STORAGE_KEY));
+      for (const [property, size] of Object.entries(panelLayout.current)) {
+        workspaceRef.current.style.setProperty(property, `${size}px`);
+      }
+    } catch (error) {
+      console.warn('Panel layout could not be restored.', error);
+      setLayoutError('panels.restoreError');
+    }
+  }, []);
+
+  function persistPanelSize(property, size) {
+    if (size === null) delete panelLayout.current[property];
+    else panelLayout.current[property] = size;
+    try {
+      if (Object.keys(panelLayout.current).length) {
+        localStorage.setItem(PANEL_LAYOUT_STORAGE_KEY, JSON.stringify(panelLayout.current));
+      } else {
+        localStorage.removeItem(PANEL_LAYOUT_STORAGE_KEY);
+      }
+      setLayoutError('');
+    } catch (error) {
+      console.warn('Panel layout could not be saved.', error);
+      setLayoutError('panels.saveError');
+    }
+  }
 
   function fileStorage() {
     if (!fileStorageRef.current) {
@@ -504,6 +537,8 @@ export default function Home() {
   return (
     <PlaygroundShell>
       <div className={styles.container}>
+      {layoutError && <Alert className="theme-notice" type="warning" title={t(layoutError)}
+        role="status" closable onClose={() => setLayoutError('')} />}
       <Head>
         <title>Pygrounds</title>
         <meta name="description" content={t('home.description')} />
@@ -580,7 +615,7 @@ export default function Home() {
 
           <ResizeHandle label={t('panels.files')} controls="local-files-panel"
             containerRef={workspaceRef} targetRef={filePanelRef} adjacentRef={workbenchRef}
-            property="--file-width" className={styles.fileResizeHandle} />
+            property="--file-width" className={styles.fileResizeHandle} onCommit={persistPanelSize} />
           <main ref={workbenchRef} className={styles.workbench}>
             {pyodideLoading && (
               <div className={styles.loadingOverlay}>
@@ -647,9 +682,9 @@ export default function Home() {
             </section>
             <ResizeHandle label={t('panels.editorConsole')} controls="editor-panel console-panel"
               orientation="horizontal" minimum={180} adjacentMinimum={140}
-              containerRef={workbenchRef} targetRef={editorPanelRef} adjacentRef={consolePanelRef}
-              property="--editor-height" />
-            <section ref={consolePanelRef} id="console-panel" className={styles.consolePanel}>
+              containerRef={workspaceRef} targetRef={editorPanelRef} adjacentRef={consolePanelRef}
+              property="--editor-height" onCommit={persistPanelSize} />
+            <section ref={consolePanelRef} id="console-panel" className={styles.consolePanel} style={CONSOLE_THEME}>
               <div className={styles.panelHeading}>{t('home.console')}</div>
               <div className={styles.terminalViewport}>
                 <XTerm onLoad={xtermLoaded} onSubmit={onTerminalSubmit} onInterrupt={onTerminalInterrupt} onClear={onTerminalClear} onTabComplete={completeTerminalInput}/>
@@ -658,7 +693,8 @@ export default function Home() {
           </main>
           <ResizeHandle label={t('panels.agent')} controls="agent-panel" hidden={!agentOpen}
             containerRef={workspaceRef} targetRef={agentPanelRef} adjacentRef={workbenchRef}
-            property="--agent-width" minimum={240} reverse className={styles.agentResizeHandle} />
+            property="--agent-width" minimum={240} reverse className={styles.agentResizeHandle}
+            onCommit={persistPanelSize} />
           <AgentPanel panelRef={agentPanelRef} key={user && !authLoading && !authError ? user.id : 'guest'} open={agentOpen} onClose={() => setAgentOpen(false)}
             getSnapshot={getAgentSnapshot} applyProposal={applyAgentProposal} />
         </Content>

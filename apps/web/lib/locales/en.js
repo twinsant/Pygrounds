@@ -26,6 +26,8 @@ export default {
   'panels.agent': 'Resize Agent',
   'panels.editorConsole': 'Resize editor and console',
   'panels.hint': 'Drag or use arrow keys to resize; Shift moves faster. Double-click or press Enter to reset.',
+  'panels.restoreError': 'Your saved panel layout could not be restored. You can still resize the panels.',
+  'panels.saveError': 'Your browser could not save the panel layout. Changes will work for this visit only.',
   'terminal.input': 'Terminal input',
   'terminal.loading': 'Loading {name} ...',
   'terminal.notReady': 'Pyodide is not ready yet, please wait...',

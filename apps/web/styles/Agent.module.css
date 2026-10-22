@@ -32,6 +32,11 @@
   padding: 16px;
 }
 
+.feed {
+  /* Match the top border to the console header's 1px bottom border. */
+  flex: 0 0 calc(var(--editor-track) + var(--panel-handle-size) - 1px);
+}
+
 .notice,
 .composer small {
   color: var(--muted);
@@ -89,11 +94,14 @@
 
 .composer {
   display: flex;
+  min-height: 0;
+  flex: 1;
   flex-direction: column;
   gap: 8px;
   padding: 12px;
   border-top: 1px solid var(--border);
   background: var(--surface);
+  overflow: auto;
 }
 
 .actions {
