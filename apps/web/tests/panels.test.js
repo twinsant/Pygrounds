@@ -1,5 +1,17 @@
 import { describe, expect, test } from 'bun:test'
+import { readFileSync } from 'node:fs'
 import { clampPanelSize, getResizeMetrics } from '../lib/panels'
+
+test('all panel headers share one fixed height so their borders align', () => {
+  const home = readFileSync(new URL('../styles/Home.module.css', import.meta.url), 'utf8')
+  const agent = readFileSync(new URL('../styles/Agent.module.css', import.meta.url), 'utf8')
+  expect(home).toContain('--panel-header-height: 42px;')
+  for (const [source, selector] of [[home, 'panelHeading'], [home, 'panelToolbar'], [agent, 'heading']]) {
+    const rule = source.match(new RegExp(`\\.${selector}\\s*\\{([^}]+)\\}`))?.[1]
+    expect(rule).toContain('height: var(--panel-header-height);')
+    expect(rule).toContain('flex: 0 0 var(--panel-header-height);')
+  }
+})
 
 describe('panel resize limits', () => {
   test('file width leaves the editor usable without taking space from Agent', () => {

@@ -16,7 +16,8 @@
 
 .heading {
   display: flex;
-  min-height: 42px;
+  height: var(--panel-header-height);
+  flex: 0 0 var(--panel-header-height);
   align-items: center;
   justify-content: space-between;
   padding: 0 12px;
