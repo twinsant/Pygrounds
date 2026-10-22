@@ -136,6 +136,7 @@ bun run build:web
 
 - `deploy-systemd.sh` 会在远端创建 `pygrounds.service`，服务监听 `127.0.0.1:3001`；如果主机上还没有 Bun，会先安装到 `/root/.bun`
 - `deploy-from-git.sh` 会在远端 `/root/projects/Pygrounds` 执行 `git fetch`、切分支、`bun install --frozen-lockfile`，使用服务配置的 Node 22 运行时构建 Next.js，然后重启服务
+- 构建和 systemd 固定使用 `/root/projects/twinsant.com/node-v22.23.4-linux-x64-glibc-217/bin/node`。主机 `t` 需要 glibc 2.17 兼容包；升级时先校验并安装新运行时，再同步构建路径和服务模板，重新部署 systemd 配置并重启。重启后需核对实际进程版本，不能只检查 shell 的 `node --version`。
 - `deploy-nginx.sh` 会把 Nginx 反代到 `127.0.0.1:3001`，默认更新远端 `/etc/nginx/conf.d/python.twinsant.com.conf`，`server_name` 也是 `python.twinsant.com`
 - Nginx 默认按现网使用 `/etc/nginx/python.twinsant.com_bundle.crt` 和 `/etc/nginx/python.twinsant.com.key`；只有在传 `-e manage_tls_assets=true` 时才会从本地复制证书
 - 远端下载代理仅用于 Bun 安装；`deploy-from-git.sh` 里的 `bun install` 按你的要求走远端直连
