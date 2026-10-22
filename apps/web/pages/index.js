@@ -2,8 +2,8 @@ import { useRef, useEffect, useState } from 'react'
 import Head from 'next/head'
 import Script from 'next/script'
 import Link from 'next/link'
-import { Alert, Button, Layout, Menu, Progress } from 'antd';
-import { FileOutlined, MenuOutlined, PlayCircleOutlined, LoadingOutlined } from '@ant-design/icons';
+import { Alert, Button, Dropdown, Layout, Menu, Progress } from 'antd';
+import { FileOutlined, MenuOutlined, MoreOutlined, PlayCircleOutlined, RobotOutlined, LoadingOutlined } from '@ant-design/icons';
 import styles from '../styles/Home.module.css'
 import { PlaygroundShell } from '@pygrounds/app-ui'
 import { BrowserFileStorage } from '@pygrounds/file-storage'
@@ -15,10 +15,9 @@ import AgentPanel from '../components/AgentPanel'
 import { useAuth } from '../components/AuthProvider'
 import { assertProposalTarget } from '../lib/agent'
 import { useTheme } from '../components/ThemeProvider'
-import ThemeToggle from '../components/ThemeToggle'
+import AppearanceMenu from '../components/AppearanceMenu'
 import { getMonacoTheme, getThemeVariables } from '../lib/theme'
 import { useLanguage } from '../components/LanguageProvider'
-import LanguageSelect from '../components/LanguageSelect'
 import { LocalizedError } from '../lib/i18n'
 import ResizeHandle from '../components/ResizeHandle'
 import { PANEL_LAYOUT_STORAGE_KEY, parsePanelLayout } from '../lib/panels'
@@ -511,22 +510,18 @@ export default function Home() {
     return match ?? input;
   }
 
-  const menus = [
+  const fileMenuItems = [
+    { key: 'save', label: t('home.save') },
     {
-      key: "file",
-      label: t('home.file'),
-      children: [
-        {key: "save", label: t('home.save')},
-        {
-          key: "open",
-          label: t('home.open'),
-          children: virtualFiles.length > 0
-            ? virtualFiles.map(fileName => ({key: `open:${fileName}`, label: fileName}))
-            : [{key: 'open-empty', label: t('home.noFiles'), disabled: true}],
-        },
-      ],
+      key: 'open',
+      label: t('home.open'),
+      children: virtualFiles.length > 0
+        ? virtualFiles.map(fileName => ({ key: `open:${fileName}`, label: fileName }))
+        : [{ key: 'open-empty', label: t('home.noFiles'), disabled: true }],
     },
-    {key: "m1", label: <Link href="https://github.com/twinsant/Pygrounds">Github</Link>},
+  ]
+  const menus = [
+    { key: 'github', label: <Link href="https://github.com/twinsant/Pygrounds">Github</Link> },
   ]
 
   const displayedFiles = Array.from(new Set([
@@ -573,12 +568,11 @@ export default function Home() {
               }
             }}
           />
-          <Button type="text" aria-controls="agent-panel" aria-expanded={agentOpen}
+          <Button type="text" icon={<RobotOutlined />} aria-label={t('agent.title')}
+            title={t('agent.title')} aria-controls="agent-panel" aria-expanded={agentOpen}
             onClick={() => { setAgentOpen(open => !open); setFileDrawerOpen(false); }}>
-            {t('agent.title')}
           </Button>
-          <ThemeToggle />
-          <LanguageSelect />
+          <AppearanceMenu />
           <AccountControl />
         </Header>
 
@@ -592,7 +586,19 @@ export default function Home() {
             />
           )}
           <aside ref={filePanelRef} id="local-files-panel" className={styles.filePanel} aria-label={t('home.localFiles')}>
-            <div className={styles.panelHeading}>{t('home.localFiles')}</div>
+            <div className={styles.panelHeading}>
+              <span>{t('home.localFiles')}</span>
+              <Dropdown trigger={['click']} menu={{
+                items: fileMenuItems,
+                onClick: ({ key }) => {
+                  if (key === 'save') saveEditorToHome()
+                  else if (key.startsWith('open:')) openVirtualFile(key.slice(5))
+                },
+              }}>
+                <Button type="text" size="small" icon={<MoreOutlined />}
+                  aria-label={t('home.fileActions')} title={t('home.fileActions')} />
+              </Dropdown>
+            </div>
             <div className={styles.fileList}>
               {displayedFiles.length > 0 ? displayedFiles.map(fileName => (
                 <button

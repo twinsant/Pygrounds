@@ -58,15 +58,44 @@
   color: var(--muted);
 }
 
-.markdown :global(pre) {
+.copyBlock {
+  position: relative;
+  min-width: 0;
   max-width: 100%;
   margin: 0.75em 0;
+}
+
+.markdown :global(pre) {
+  max-width: 100%;
+  margin: 0;
   overflow: auto;
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 10px 12px;
+  padding: 38px 12px 10px;
   background: var(--canvas);
   color: var(--text);
+}
+
+.copyButton {
+  position: absolute;
+  z-index: 1;
+  top: 7px;
+  right: 7px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 3px 8px;
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.copyButton:hover,
+.copyButton:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .markdown :global(pre code) {

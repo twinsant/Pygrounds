@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Alert, Button, Input, Space, Spin, Tag } from 'antd'
-import { CloseOutlined, SendOutlined } from '@ant-design/icons'
+import { CloseOutlined, PlusOutlined, RobotOutlined, SendOutlined } from '@ant-design/icons'
 import { useAuth } from './AuthProvider'
 import AuthDialog from './AuthDialog'
 import { AuthError } from '../lib/auth'
@@ -13,7 +13,7 @@ import dynamic from 'next/dynamic'
 const Markdown = dynamic(() => import('./Markdown'), { ssr: false })
 
 export default function AgentPanel({ open, onClose, getSnapshot, applyProposal, panelRef }) {
-  const { t } = useLanguage()
+  const { language, t } = useLanguage()
   const { user, loading, error: authError, refresh, authenticate } = useAuth()
   const [loginOpen, setLoginOpen] = useState(false)
   const [prompt, setPrompt] = useState('')
@@ -127,9 +127,10 @@ export default function AgentPanel({ open, onClose, getSnapshot, applyProposal, 
   return (
     <aside ref={panelRef} id="agent-panel" className={styles.panel} hidden={!open} aria-label={t('agent.title')}>
       <div className={styles.heading}>
-        <strong>{t('agent.title')}</strong>
+        <strong className={styles.title}><RobotOutlined />{t('agent.title')}</strong>
         <Space>
-          {enabled && <Button size="small" disabled={busy} onClick={newChat}>{t('agent.newChat')}</Button>}
+          {enabled && <Button type="text" icon={<PlusOutlined />} aria-label={t('agent.newChat')}
+            title={t('agent.newChat')} disabled={busy} onClick={newChat} />}
           <Button type="text" icon={<CloseOutlined />} aria-label={t('agent.close')} onClick={onClose} />
         </Space>
       </div>
@@ -170,7 +171,7 @@ export default function AgentPanel({ open, onClose, getSnapshot, applyProposal, 
                     )}
                   </div>
                 ))}
-                {message.content && <Markdown content={message.content} />}
+                {message.content && <Markdown content={message.content} language={language} t={t} />}
                 {message.role === 'agent' && !message.content && !message.failed && <Spin size="small" />}
                 {message.failed && <p>{t('agent.incomplete')}</p>}
               </article>

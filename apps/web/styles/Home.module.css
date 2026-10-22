@@ -225,6 +225,7 @@
   height: var(--panel-header-height);
   flex: 0 0 var(--panel-header-height);
   align-items: center;
+  justify-content: space-between;
   padding: 0 14px;
   border-bottom: 1px solid var(--border);
   color: var(--muted);
@@ -232,6 +233,10 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.panelHeading > :global(.ant-dropdown-trigger) {
+  flex: 0 0 auto;
 }
 
 .fileList {
