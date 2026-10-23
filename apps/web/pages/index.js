@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react'
 import Head from 'next/head'
 import Script from 'next/script'
 import Link from 'next/link'
-import { Alert, Button, Dropdown, Layout, Menu, Progress } from 'antd';
+import { Alert, Button, Dropdown, Layout, Progress } from 'antd';
 import { FileOutlined, MenuOutlined, MoreOutlined, PlayCircleOutlined, RobotOutlined, LoadingOutlined } from '@ant-design/icons';
 import styles from '../styles/Home.module.css'
 import { PlaygroundShell } from '@pygrounds/app-ui'
@@ -15,7 +15,6 @@ import AgentPanel from '../components/AgentPanel'
 import { useAuth } from '../components/AuthProvider'
 import { assertProposalTarget } from '../lib/agent'
 import { useTheme } from '../components/ThemeProvider'
-import AppearanceMenu from '../components/AppearanceMenu'
 import { getMonacoTheme, getThemeVariables } from '../lib/theme'
 import { useLanguage } from '../components/LanguageProvider'
 import { LocalizedError } from '../lib/i18n'
@@ -520,10 +519,6 @@ export default function Home() {
         : [{ key: 'open-empty', label: t('home.noFiles'), disabled: true }],
     },
   ]
-  const menus = [
-    { key: 'github', label: <Link href="https://github.com/twinsant/Pygrounds">Github</Link> },
-  ]
-
   const displayedFiles = Array.from(new Set([
     currentFilePathRef.current.split('/').pop(),
     ...virtualFiles,
@@ -554,26 +549,13 @@ export default function Home() {
             onClick={() => { setFileDrawerOpen(open => !open); setAgentOpen(false); }}
             className={styles.mobileFilesButton}
           />
-          <Menu
-            className={styles.topMenu}
-            mode="horizontal"
-            style={{ flex: 1, minWidth: 0 }}
-            selectedKeys={[]}
-            items={menus}
-            onClick={({ key }) => {
-              if (key === 'save') {
-                saveEditorToHome();
-              } else if (key.startsWith('open:')) {
-                openVirtualFile(key.slice(5));
-              }
-            }}
-          />
+          <AccountControl />
+          <Link className={styles.brandLink} href="https://github.com/twinsant/Pygrounds">Pygrounds</Link>
           <Button type="text" icon={<RobotOutlined />} aria-label={t('agent.title')}
             title={t('agent.title')} aria-controls="agent-panel" aria-expanded={agentOpen}
+            className={styles.agentToggle}
             onClick={() => { setAgentOpen(open => !open); setFileDrawerOpen(false); }}>
           </Button>
-          <AppearanceMenu />
-          <AccountControl />
         </Header>
 
         <Content ref={workspaceRef} className={`${styles.workspace} ${agentOpen ? styles.withAgent : ''} ${fileDrawerOpen ? styles.drawerOpen : ''}`} style={{ minHeight: 0 }}>

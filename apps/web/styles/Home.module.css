@@ -167,10 +167,20 @@
   display: none !important;
 }
 
-.topMenu {
-  min-width: 0;
-  border: 0;
-  background: transparent;
+.brandLink {
+  flex: 0 0 auto;
+  padding: 0 8px;
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.brandLink:hover {
+  color: var(--accent);
+}
+
+.agentToggle {
+  margin-left: auto;
 }
 
 .workspace {
@@ -449,10 +459,6 @@
 
   .fileItem {
     width: 100%;
-  }
-
-  .topMenu :global(.ant-menu-item:nth-child(2)) {
-    display: none;
   }
 
 }
