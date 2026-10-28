@@ -392,6 +392,17 @@ export default function Home() {
     const savedCode = fileStorage().getItem(INITIAL_FILE_PATH);
     if (savedCode !== null) {
       editor.setValue(savedCode);
+    } else {
+      try {
+        const response = await fetch('/unamed.py');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        editor.setValue(await response.text());
+      } catch (error) {
+        console.error('Could not load the starter Python template.', error);
+        setLayoutError('home.templateLoadError');
+      }
     }
     const { initVimMode } = await import('monaco-vim');
     vimModeRef.current = initVimMode(editor, vimStatusRef.current);
@@ -662,7 +673,6 @@ export default function Home() {
                   defaultLanguage="python"
                   loading={t('home.editor')}
                   options={{minimap: false, ariaLabel: t('home.editor')}}
-                  defaultValue="print('hello, world')"
                   onMount={editorDidMount}
                 />
               </div>

@@ -22,6 +22,7 @@ export default {
   'home.console': 'Console',
   'home.rename': 'Rename current file',
   'home.editor': 'Python editor',
+  'home.templateLoadError': 'The starter Python file could not be loaded.',
   'home.poweredBy': 'Powered with Pyodide & Monaco Editor',
   'home.by': 'by',
   'panels.files': 'Resize file list',

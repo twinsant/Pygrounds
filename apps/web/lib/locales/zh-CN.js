@@ -22,6 +22,7 @@ export default {
   'home.console': '控制台',
   'home.rename': '重命名当前文件',
   'home.editor': 'Python 编辑器',
+  'home.templateLoadError': '无法加载默认 Python 文件。',
   'home.poweredBy': '由 Pyodide 和 Monaco Editor 驱动',
   'home.by': '作者',
   'panels.files': '调整文件列表宽度',
