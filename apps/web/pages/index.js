@@ -20,6 +20,7 @@ import { useLanguage } from '../components/LanguageProvider'
 import { LocalizedError } from '../lib/i18n'
 import ResizeHandle from '../components/ResizeHandle'
 import { PANEL_LAYOUT_STORAGE_KEY, parsePanelLayout } from '../lib/panels'
+import { codeSizeBucket, trackEvent } from '../lib/analytics'
 
 const CONSOLE_THEME = { ...getThemeVariables('dark'), colorScheme: 'dark' }
 
@@ -360,6 +361,7 @@ export default function Home() {
   async function onRun() {
     if (!pyodideRef.current) {
       xtermRef.current.write(colorsRef.current.red(`\r\n${t('terminal.notReady')}\r\n`));
+      trackEvent('code_run_blocked', { reason: 'runtime_not_ready' })
       return;
     }
 
@@ -371,9 +373,11 @@ export default function Home() {
     xtermRef.current.write(colorsRef.current.gray(`\r\n${t('terminal.importsDone', { ms: elasped })}\r\n`))
     try {
       await pyodideRef.current.runPythonAsync(preparePythonCode(code));
+      trackEvent('code_run', { size: codeSizeBucket(code), imports_ms: elasped })
     } catch (e) {
       // console.log([e, e.message, e.stack]);
       xtermRef.current.write(colorsRef.current.red(`\r\n${e.message}\r\n`));
+      trackEvent('code_error', { size: codeSizeBucket(code) })
     }
     writeTerminalPrompt(true);
   }
